@@ -7,10 +7,29 @@
 
   <!-- Bootstrap CSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Bootstrap Icons (si besoin pour les boutons) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
   <style>
+    /* Fond flou */
+    
+
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .container {
+      background-color: rgba(255, 255, 255, 0.88);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
     /* Couleur rouge clair pour les en-têtes */
     .table thead th {
-      background-color: #f28b82 !important; /* rouge clair */
+      background-color: #f28b82 !important;
       color: white !important;
     }
 
@@ -26,103 +45,131 @@
       border-color: #e57373 !important;
     }
 
-    /* Labels en gras dans le formulaire */
+    /* Labels en gras */
     form label.form-label {
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container my-5">
-    <div class="d-flex align-items-center mb-4">
-      <img src="{{ url_for('static', filename='logoas.jpg') }}" alt="Logo" style="height: 50px; margin-right: 15px;">
-      <h1 class="mb-0">As Création</h1>
-    </div>
 
-    <!-- Formulaire d’ajout placé ici -->
-    <h2 class="mb-3">Ajouter un produit</h2>
-    <form method="POST" action="/ajouter" class="row g-3 mb-4">
-      <div class="col-md-5">
-        <label for="nom" class="form-label">Nom du produit :</label>
-        <input type="text" class="form-control" id="nom" name="nom" required />
+  <!-- Image de fond floue -->
+  <div class="background-blur"></div>
+
+  <!-- Contenu principal -->
+  <div class="content">
+    <div class="container my-5">
+      <div class="d-flex align-items-center mb-4">
+        <h1 class="mb-0">KitStock</h1>
       </div>
-      <div class="col-md-5">
-        <label for="description" class="form-label">Description :</label>
-        <input type="text" class="form-control" id="description" name="description" placeholder="Couleur, tissu, etc." />
+
+      <h2 class="mb-3">Ajouter un produit</h2>
+      <form method="POST" action="/ajouter" class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label for="nom" class="form-label">Nom du produit :</label>
+          <input type="text" class="form-control" id="nom" name="nom" required />
+        </div>
+        <div class="col-md-4">
+          <label for="description" class="form-label">Description :</label>
+          <input type="text" class="form-control" id="description" name="description" />
+        </div>
+        <div class="col-md-2">
+          <label for="quantite" class="form-label">Quantité :</label>
+          <input type="number" class="form-control" id="quantite" name="quantite" required min="1" />
+        </div>
+        <div class="col-md-2">
+          <label for="prix_unitaire" class="form-label">Prix unitaire</label>
+          <input type="number" step="0.01" name="prix_unitaire" id="prix_unitaire" class="form-control" required />
+        </div>
+        <div class="col-12 d-flex justify-content-end">
+          <button type="submit" class="btn btn-ajouter">Ajouter</button>
+        </div>
+      </form>
+
+      {% if ruptures %}
+      <div class="alert alert-danger">
+        <h5 class="alert-heading">❌ Rupture de stock :</h5>
+        <ul class="mb-0">
+          {% for produit in ruptures %}
+            <li><strong>{{ produit.nom }}</strong> est en rupture (0 en stock)</li>
+          {% endfor %}
+        </ul>
       </div>
-      <div class="col-md-2">
-        <label for="quantite" class="form-label">Quantité :</label>
-        <input type="number" class="form-control" id="quantite" name="quantite" required min="1" />
+      {% endif %}
+
+      <div class="mb-2">
+        <input type="text" id="searchInput" class="form-control" placeholder="Rechercher un produit...">
       </div>
-      <div class="col-12 d-flex justify-content-end">
-        <button type="submit" class="btn btn-ajouter">Ajouter</button>
+
+      <a href="{{ url_for('historique') }}" class="btn btn-info mb-3">Voir l'historique des ventes ---</a>
+
+      <table class="table table-striped table-bordered text-center" id="produitTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom du produit</th>
+            <th>Description</th>
+            <th>Prix unitaire</th>
+            <th>Quantité</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in stock %}
+          <tr>
+            <td>{{ item.id }}</td>
+            <td>{{ item.nom }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.prix_unitaire }} FCFA</td>
+            <td>
+              {% if item.quantite == 0 %}
+                <span class="badge bg-danger">Rupture</span>
+              {% else %}
+                {{ item.quantite }}
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('modifier', id=item.id) }}" class="btn btn-warning btn-sm">Modifier</a>
+              <a href="{{ url_for('vendre', id=item.id) }}" class="btn btn-success btn-sm">Vendre</a>
+
+              <!-- Bouton modale -->
+              <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ item.id }}">
+                Supprimer
+              </button>
+
+              <!-- Modale -->
+<div class="modal fade" id="confirmDeleteModal{{ item.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ item.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <form action="{{ url_for('supprimer', id=item.id) }}" method="post"> <!-- Form ENTOURE tout -->
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirmer la suppression</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          Êtes-vous sûr de vouloir supprimer le produit <strong>{{ item.nom }}</strong> ?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-danger">Supprimer</button>
+        </div>
       </div>
     </form>
+  </div>
+</div>
 
-    <!-- Alerte si le produit est inférieur à 5-->
-    {% if ruptures %}
-    <div class="alert alert-danger">
-      <h5 class="alert-heading">❌ Rupture de stock :</h5>
-      <ul class="mb-0">
-        {% for produit in ruptures %}
-          <li><strong>{{ produit.nom }}</strong> est en rupture (0 en stock)</li>
-        {% endfor %}
-      </ul>
+                </div>
+              </div>
+
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    {% endif %}
-
-    <!-- Barre de recherche -->
-    <div class="mb-4">
-      <input type="text" id="searchInput" class="form-control" placeholder="Rechercher un produit...">
-    </div>
-  
-    <a href="{{ url_for('historique') }}" class="btn btn-info mb-3">Voir l'historique des ventes</a>
-
-<!-- Tableau des produits -->
-<table class="table table-striped table-bordered" id="produitTable">
-  
-</table>
-
-
-
-    <!-- Tableau des produits -->
-    <table class="table table-striped table-bordered" id="produitTable">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Nom du produit</th>
-          <th>Description</th>
-          <th>Quantité</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in stock %}
-        <tr>
-          <td>{{ item.id }}</td>
-          <td>{{ item.nom }}</td>
-          <td>{{ item.description }}</td>
-          <td>
-            {% if item.quantite == 0 %}
-              <span class="badge bg-danger">Rupture</span>
-            {% else %}
-              {{ item.quantite }}
-            {% endif %}
-           </td>
-          <td>
-            <a href="{{ url_for('modifier', id=item.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-            <a href="{{ url_for('vendre', id=item.id) }}" class="btn btn-success btn-sm">Vendre</a>
-            <form action="{{ url_for('supprimer', id=item.id) }}" method="post" style="display:inline;">
-              <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer ce produit ?')">Supprimer</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
   </div>
 
-  <!-- Script Bootstrap + Recherche dynamique -->
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.getElementById("searchInput").addEventListener("keyup", function () {

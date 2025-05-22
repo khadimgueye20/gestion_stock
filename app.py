@@ -6,7 +6,7 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Configuration de la base de données SQLite
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///stock.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:touba202@localhost:5432/gestion_stock'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = "votre_cle_secrete"
 
@@ -18,6 +18,10 @@ class Produit(db.Model):
     nom = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(300), nullable=True)
     quantite = db.Column(db.Integer, nullable=False)
+    prix_unitaire = db.Column(db.Float, nullable=True)
+
+    
+
 
 # Modèle de vente
 class Vente(db.Model):
@@ -25,8 +29,7 @@ class Vente(db.Model):
     produit_id = db.Column(db.Integer, db.ForeignKey('produit.id'), nullable=False)
     quantite = db.Column(db.Integer, nullable=False, default=0)
     date_vente = db.Column(db.DateTime, default=datetime.utcnow)
-    produit = db.relationship('Produit', backref=db.backref('ventes', lazy=True))
-    
+    produit = db.relationship('Produit', backref=db.backref('ventes', lazy=True, cascade="all, delete"))    
 
 # Initialisation de Flask-Migrate
 migrate = Migrate(app, db)
@@ -44,10 +47,12 @@ def ajouter():
     nom = request.form['nom']
     description = request.form['description']
     quantite = int(request.form['quantite'])
-    nouveau_produit = Produit(nom=nom, description=description, quantite=quantite)
+    prix_unitaire = float(request.form['prix_unitaire']) if 'prix_unitaire' in request.form else 0.0
+    nouveau_produit = Produit(nom=nom, description=description, quantite=quantite, prix_unitaire=prix_unitaire)
     db.session.add(nouveau_produit)
     db.session.commit()
     return redirect(url_for('index'))
+
 
 # Route pour supprimer un produit par son ID
 @app.route('/supprimer/<int:id>', methods=['POST'])
@@ -162,12 +167,7 @@ def supprimer_vente(id):
     return redirect(url_for('historique'))
 
 # Route pour supprimer toutes les ventes
-@app.route('/supprimer_toutes_ventes', methods=['POST'])
-def supprimer_toutes_ventes():
-    Vente.query.delete()
-    db.session.commit()
-    flash("Historique des ventes supprimé.", "success")
-    return redirect(url_for('historique'))
+
 
 
 if __name__ == '__main__':
