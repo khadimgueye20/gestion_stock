@@ -1,9 +1,65 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  padding: 20px;
+}
+
+/* ✅ FOND FLOU EN ARRIÈRE-PLAN */
 .background-blur {
+  background-image: url('/static/fond.jpg');
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-image: url("/static/fond.jpg");
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-size: cover;
   background-position: center;
-  filter: blur(10px);
+  background-repeat: no-repeat;
+  filter: blur(5px);
   z-index: -1;
+}
+
+/* ✅ PANNEAU FLOTTANT EN VERRE (GLASS EFFECT) */
+.glass-panel {
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  color: white;
+}
+
+/* ✅ FORMULAIRES */
+.form-label {
+  color: #212529;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+}
+
+/* ✅ TITRES */
+h1, h2 {
+  font-weight: bold;
+  color: #212529;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6); /* Meilleure lisibilité sur fond flou */
+}
+
+h2 {
+  font-size: 1.8rem;
+}
+
+/* ✅ TABLEAU */
+.table td, .table th {
+  vertical-align: middle;
+}
+
+/* ✅ BODY */
+body {
+  padding: 20px;
+}
+
+/* ✅ ALIGNEMENT SUR ÉCRANS LARGE */
+@media (min-width: 992px) {
+  h1, h2 {
+    text-align: left;
+  }
 }

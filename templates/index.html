@@ -1,84 +1,36 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gestion de Stock</title>
+{% extends 'base.html' %}
 
-  <!-- Bootstrap CSS CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <!-- Bootstrap Icons (si besoin pour les boutons) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+{% block title %}Gestion de Stock{% endblock %}
 
-  <style>
-    /* Fond flou */
-    
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-10 col-xl-8">
 
-    .content {
-      position: relative;
-      z-index: 1;
-    }
+      <!-- Titre -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+  <h1 class="mb-0">KitStock</h1>
+  <a href="{{ url_for('index') }}" class="btn btn-outline-light">Accueil</a>
+</div>
 
-    .container {
-      background-color: rgba(255, 255, 255, 0.88);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
 
-    /* Couleur rouge clair pour les en-têtes */
-    .table thead th {
-      background-color: #f28b82 !important;
-      color: white !important;
-    }
-
-    /* Bouton rouge clair */
-    .btn-ajouter {
-      background-color: #f28b82 !important;
-      border-color: #f28b82 !important;
-      color: white !important;
-    }
-
-    .btn-ajouter:hover {
-      background-color: #e57373 !important;
-      border-color: #e57373 !important;
-    }
-
-    /* Labels en gras */
-    form label.form-label {
-      font-weight: bold;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Image de fond floue -->
-  <div class="background-blur"></div>
-
-  <!-- Contenu principal -->
-  <div class="content">
-    <div class="container my-5">
-      <div class="d-flex align-items-center mb-4">
-        <h1 class="mb-0">KitStock</h1>
-      </div>
-
+      <!-- Formulaire -->
       <h2 class="mb-3">Ajouter un produit</h2>
       <form method="POST" action="/ajouter" class="row g-3 mb-4">
-        <div class="col-md-4">
-          <label for="nom" class="form-label">Nom du produit :</label>
+        <div class="col-md-4 d-flex flex-column justify-content-center">
+          <label for="nom" class="form-label text-center">Nom du produit :</label>
           <input type="text" class="form-control" id="nom" name="nom" required />
         </div>
-        <div class="col-md-4">
-          <label for="description" class="form-label">Description :</label>
+        <div class="col-md-4 d-flex flex-column justify-content-center">
+          <label for="description" class="form-label text-center">Description :</label>
           <input type="text" class="form-control" id="description" name="description" />
         </div>
-        <div class="col-md-2">
-          <label for="quantite" class="form-label">Quantité :</label>
+        <div class="col-md-2 d-flex flex-column justify-content-center">
+          <label for="quantite" class="form-label text-center">Quantité :</label>
           <input type="number" class="form-control" id="quantite" name="quantite" required min="1" />
         </div>
-        <div class="col-md-2">
-          <label for="prix_unitaire" class="form-label">Prix unitaire</label>
+        <div class="col-md-2 d-flex flex-column justify-content-center">
+          <label for="prix_unitaire" class="form-label text-center">Prix unitaire :</label>
           <input type="number" step="0.01" name="prix_unitaire" id="prix_unitaire" class="form-control" required />
         </div>
         <div class="col-12 d-flex justify-content-end">
@@ -86,6 +38,7 @@
         </div>
       </form>
 
+      <!-- Alerte rupture -->
       {% if ruptures %}
       <div class="alert alert-danger">
         <h5 class="alert-heading">❌ Rupture de stock :</h5>
@@ -97,90 +50,87 @@
       </div>
       {% endif %}
 
+      <!-- Recherche -->
       <div class="mb-2">
         <input type="text" id="searchInput" class="form-control" placeholder="Rechercher un produit...">
       </div>
 
-      <a href="{{ url_for('historique') }}" class="btn btn-info mb-3">Voir l'historique des ventes ---</a>
+      <a href="{{ url_for('historique') }}" class="btn btn-info mb-3">Voir l'historique des ventes</a>
 
-      <table class="table table-striped table-bordered text-center" id="produitTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nom du produit</th>
-            <th>Description</th>
-            <th>Prix unitaire</th>
-            <th>Quantité</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in stock %}
-          <tr>
-            <td>{{ item.id }}</td>
-            <td>{{ item.nom }}</td>
-            <td>{{ item.description }}</td>
-            <td>{{ item.prix_unitaire }} FCFA</td>
-            <td>
-              {% if item.quantite == 0 %}
-                <span class="badge bg-danger">Rupture</span>
-              {% else %}
-                {{ item.quantite }}
-              {% endif %}
-            </td>
-            <td>
-              <a href="{{ url_for('modifier', id=item.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-              <a href="{{ url_for('vendre', id=item.id) }}" class="btn btn-success btn-sm">Vendre</a>
+      <!-- Tableau responsive -->
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered text-center align-middle" id="produitTable">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Nom du produit</th>
+              <th class="d-none d-sm-table-cell">Description</th>
+              <th>Prix unitaire</th>
+              <th>Quantité</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+  {% for item in stock %}
+  <tr>
+    <td>{{ item.id }}</td>
+    <td>{{ item.nom }}</td>
+    <td class="d-none d-sm-table-cell">{{ item.description }}</td>
+    <td>{{ "{:,.0f}".format(item.prix_unitaire) }} FCFA</td>
+    <td>
+      {% if item.quantite == 0 %}
+        <span class="badge bg-danger">Rupture</span>
+      {% else %}
+        {{ item.quantite }}
+      {% endif %}
+    </td>
+    <td>
+      <div class="d-flex flex-column flex-sm-row gap-1 justify-content-center">
+        <a href="{{ url_for('modifier', id=item.id) }}" class="btn btn-warning btn-sm">Modifier</a>
+        <a href="{{ url_for('vendre', id=item.id) }}" class="btn btn-success btn-sm">Vendre</a>
+        <form method="POST" action="{{ url_for('supprimer_produit', id=item.id) }}" class="form-supprimer" data-nom="{{ item.nom }}">
+  <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+</form>
 
-              <!-- Bouton modale -->
-              <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal{{ item.id }}">
-                Supprimer
-              </button>
-
-              <!-- Modale -->
-<div class="modal fade" id="confirmDeleteModal{{ item.id }}" tabindex="-1" aria-labelledby="confirmDeleteLabel{{ item.id }}" aria-hidden="true">
-  <div class="modal-dialog">
-    <form action="{{ url_for('supprimer', id=item.id) }}" method="post"> <!-- Form ENTOURE tout -->
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Confirmer la suppression</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          Êtes-vous sûr de vouloir supprimer le produit <strong>{{ item.nom }}</strong> ?
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-          <button type="submit" class="btn btn-danger">Supprimer</button>
-        </div>
       </div>
-    </form>
-  </div>
-</div>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
 
-                </div>
-              </div>
+        </table>
+      </div>
 
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
+    </div> <!-- Fin col -->
+  </div> <!-- Fin row -->
+</div> <!-- Fin container -->
+{% endblock %}
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    document.getElementById("searchInput").addEventListener("keyup", function () {
-      let input = this.value.toLowerCase();
-      let rows = document.querySelectorAll("#produitTable tbody tr");
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  // Confirmation suppression
+  document.querySelectorAll('.form-supprimer').forEach(form => {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault(); // Bloque l'envoi immédiat
+      const nom = this.dataset.nom;
 
-      rows.forEach(row => {
-        let text = row.textContent.toLowerCase();
-        row.style.display = text.includes(input) ? "" : "none";
+      Swal.fire({
+        title: 'Êtes-vous sûr ?',
+        text: `Le produit "${nom}" sera définitivement supprimé.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit(); // Envoie du formulaire après confirmation
+        }
       });
     });
-  </script>
-</body>
-</html>
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Corbeille{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Produits supprimés (corbeille)</h2>
+<a href="{{ url_for('index') }}" class="btn btn-outline-secondary mb-4">
+  ← Retour à l’accueil
+</a>
+
+{% if produits %}
+  <table class="table table-bordered table-hover text-center">
+    <thead class="table-light">
+      <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Description</th>
+        <th>Quantité</th>
+        <th>Prix unitaire</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for produit in produits %}
+      <tr>
+        <td>{{ produit.id }}</td>
+        <td>{{ produit.nom }}</td>
+        <td>{{ produit.description }}</td>
+        <td>{{ produit.quantite }}</td>
+        <td>{{ produit.prix_unitaire }} FCFA</td>
+        <td>
+          <!-- Restaurer -->
+          <form action="{{ url_for('restaurer_produit', id=produit.id) }}" method="POST" style="display:inline;">
+            <button class="btn btn-success btn-sm" type="submit">Restaurer</button>
+          </form>
+
+          <!-- Suppression définitive -->
+          <form method="POST" action="{{ url_for('supprimer_definitif_produit', id=produit.id) }}" 
+                class="form-supprimer-def" data-nom="{{ produit.nom }}" style="display:inline;">
+            <button type="submit" class="btn btn-danger btn-sm">Supprimer définitivement</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <div class="alert alert-info">Aucun produit dans la corbeille.</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.querySelectorAll('.form-supprimer-def').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const nom = this.dataset.nom;
+
+      Swal.fire({
+        icon: 'warning',
+        title: 'Êtes-vous sûr ?',
+        html: `Le produit "<strong>${nom}</strong>" sera <u>définitivement supprimé</u>.`,
+        showCancelButton: true,
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        focusCancel: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

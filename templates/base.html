@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}Gestion de Stock{% endblock %}</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <!-- Police moderne Poppins -->
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+
+
+  <style>
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.88);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+    .table thead th {
+      background-color: #f28b82 !important;
+      color: white !important;
+    }
+    .btn-ajouter {
+      background-color: #f28b82 !important;
+      border-color: #f28b82 !important;
+      color: white !important;
+    }
+    .btn-ajouter:hover {
+      background-color: #e57373 !important;
+      border-color: #e57373 !important;
+    }
+    form label.form-label {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">KitStock</a>
+
+ {% if current_user.is_authenticated %}
+<ul class="navbar-nav ms-auto align-items-center">
+  <li class="nav-item me-3">
+    <span class="nav-link">Connecté en tant que <strong>{{ current_user.nom_utilisateur }}</strong></span>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('corbeille') }}">🗑️ Corbeille</a>
+  </li>
+  <li class="nav-item">
+    <a class="btn btn-outline-danger btn-sm ms-2" href="{{ url_for('logout') }}">Déconnexion</a>
+  </li>
+</ul>
+{% endif %}
+
+  </div>
+</nav>
+</nav>
+
+<div class="container mt-3">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+</div>
+
+  <div class="background-blur"></div>
+
+  <div class="content">
+    <div class="container my-5">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+{% block scripts %}
+<script>
+  // Cacher automatiquement les alertes après 3 secondes
+  document.addEventListener('DOMContentLoaded', function () {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(function (alert) {
+      setTimeout(function () {
+        const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+        bsAlert.close();
+      }, 3000);
+    });
+  });
+</script>
+{% endblock %}
+</body>
+</html>
+

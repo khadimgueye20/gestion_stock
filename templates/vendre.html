@@ -1,59 +1,23 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Vente</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% extends 'base.html' %}
 
-  <style>
-    /* Fond flou */
-    
+{% block title %}Vendre un produit{% endblock %}
 
-    .content {
-      position: relative;
-      z-index: 1;
-    }
+{% block content %}
+<h2 class="mb-4">Vente de produit</h2>
 
-    .container {
-      background-color: rgba(0, 0, 0, 0.6); /* fond plus foncé pour contraste */
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      max-width: 600px;
-    }
+<div class="card p-4 shadow rounded">
+  <h4 class="mb-3 text-primary">{{ produit.nom }}</h4>
+  <p><strong>Description :</strong> {{ produit.description or 'Aucune' }}</p>
+  <p><strong>Quantité en stock :</strong> {{ produit.quantite }}</p>
+  <p><strong>Prix unitaire :</strong> {{ produit.prix_unitaire }} FCFA</p>
 
-    h2, label {
-      color: white;
-      font-weight: bold;
-    }
-
-    p, strong {
-      color: white;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Image de fond floue -->
-  <div class="background-blur"></div>
-
-  <!-- Contenu principal -->
-  <div class="content d-flex justify-content-center align-items-center min-vh-100">
-    <div class="container">
-      <h2 class="mb-4">Vendre : {{ produit.nom }}</h2>
-      <p>Stock actuel : <strong>{{ produit.quantite }}</strong></p>
-
-      <form method="POST">
-        <div class="mb-3">
-          <label for="quantite" class="form-label">Quantité à vendre :</label>
-          <input type="number" class="form-control" id="quantite" name="quantite" required min="1" max="{{ produit.quantite }}">
-        </div>
-        <button type="submit" class="btn btn-success">Valider la vente</button>
-        <a href="{{ url_for('index') }}" class="btn btn-secondary">Annuler</a>
-      </form>
+  <form method="POST">
+    <div class="mb-3">
+      <label for="quantite" class="form-label">Quantité à vendre :</label>
+      <input type="number" name="quantite" id="quantite" class="form-control" required min="1" max="{{ produit.quantite }}">
     </div>
-  </div>
-
-</body>
-</html>
+    <button type="submit" class="btn btn-success">Valider la vente</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary ms-2">Annuler</a>
+  </form>
+</div>
+{% endblock %}
