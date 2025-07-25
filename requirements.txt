@@ -7,3 +7,4 @@ gunicorn
 flask-login
 flask_mail
 xhtml2pdf
+weasyprint
