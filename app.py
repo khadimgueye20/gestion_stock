@@ -20,9 +20,15 @@ from sqlalchemy import func, extract
 from weasyprint import HTML
 import calendar
 import locale
-
-locale.setlocale(locale.LC_TIME, 'French_France.1252')  
-
+import sys
+try:
+    if sys.platform.startswith('win'):  # Windows
+        locale.setlocale(locale.LC_TIME, 'French_France.1252')
+    else:  # Linux (Render)
+        locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
+except locale.Error:
+    # Si la locale n'est pas dispo, on laisse la valeur par défaut
+    print("⚠️ Locale non disponible, utilisation de la locale par défaut.")
 
 
 load_dotenv()
