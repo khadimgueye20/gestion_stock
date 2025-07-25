@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Historique des reçus{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+
+ <!-- ✅ Bloc informations boutique -->
+<div class="text-center mb-4">
+  {# Supprimer ce bloc pour ne pas afficher le logo #}
+  {# 
+  {% if current_user.logo %}
+    <img src="{{ url_for('static', filename=current_user.logo.split('static/')[-1]) }}" alt="Logo" width="120" class="mb-2">
+  {% endif %}
+  #}
+  
+  <h4 class="mb-1">{{ current_user.nom_boutique or "Nom de la boutique" }}</h4>
+  <p class="mb-0">{{ current_user.adresse_boutique or "Adresse de la boutique" }}</p>
+  <p class="mb-2">{{ current_user.telephone_boutique or "Téléphone de la boutique" }}</p>
+
+  {% if not current_user.nom_boutique or not current_user.adresse_boutique or not current_user.telephone_boutique or not current_user.logo %}
+    <div class="alert alert-warning mt-3">
+      ⚠️ Informations de la boutique incomplètes.
+      <a href="{{ url_for('modifier_infos_boutique') }}" class="btn btn-sm btn-outline-dark mt-2">Compléter maintenant</a>
+    </div>
+  {% endif %}
+</div>
+
+
+  <h2 class="mb-4">📜 Historique des reçus</h2>
+
+  <a href="{{ url_for('index') }}" class="btn btn-outline-primary mb-3">← Retour à l'accueil</a>
+  <a href="{{ url_for('voir_corbeille_recus') }}" class="btn btn-outline-danger mb-3 float-end">🗑️ Corbeille</a>
+
+  {% if recus %}
+  <div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Référence</th>
+          <th>Date</th>
+          <th>Montant total</th>
+          <th>Infos client</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for recu in recus %}
+        <tr>
+          <td>{{ recu.reference }}</td>
+          <td>{{ recu.date_creation.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td>{{ recu.montant_total }} F</td>
+          <td>
+            {% if recu.nom_client %}
+              {{ recu.nom_client }}<br>
+              <small>{{ recu.telephone_client }}</small>
+            {% else %}
+              <em>Non renseigné</em>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{{ url_for('voir_recu', recu_id=recu.id) }}" class="btn btn-primary btn-sm">Voir</a>
+            <a href="{{ url_for('recu_pdf', recu_id=recu.id) }}" class="btn btn-secondary btn-sm">PDF</a>
+            <a href="{{ url_for('modifier_recu', recu_id=recu.id) }}" class="btn btn-warning btn-sm">Modifier</a>
+            <a href="{{ url_for('effectuer_retour', recu_id=recu.id) }}" class="btn btn-warning btn-sm">Retour</a>
+            <form method="POST"
+                  action="{{ url_for('supprimer_recu_view', recu_id=recu.id) }}"
+                  class="form-supprimer-recu d-inline"
+                  data-ref="{{ recu.reference }}">
+              <button type="submit" class="btn btn-danger btn-sm">🗑️ Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p>Aucun reçu enregistré pour le moment.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.querySelectorAll('.form-supprimer-recu').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const ref = this.dataset.ref;
+
+      Swal.fire({
+        title: 'Êtes-vous sûr ?',
+        text: `Le reçu "${ref}" sera déplacé dans la corbeille.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

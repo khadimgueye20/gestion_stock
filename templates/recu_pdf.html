@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      font-size: 14px;
+    }
+
+    h2, h4 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin: 5px 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th, td {
+      border: 1px solid #000;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .signature {
+      margin-top: 50px;
+      text-align: right;
+    }
+
+    .signature span {
+      border-top: 1px solid #000;
+      padding-top: 4px;
+      display: inline-block;
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+
+<div style="text-align: center; margin-bottom: 20px;">
+ {% if utilisateur.logo %}
+  <img src="{{ url_for('static', filename=utilisateur.logo.split('static/')[-1]) }}"
+       width="100" height="100"
+       style="object-fit: cover; margin-bottom: 10px; border-radius: 10px;"><br>
+{% endif %}
+
+  <h3 style="margin: 0;">{{ current_user.nom_boutique or "Nom de la boutique" }}</h3>
+  <p style="margin: 2px 0;">📍 {{ current_user.adresse_boutique or "Adresse de la boutique" }}</p>
+  <p style="margin: 2px 0;">📞 {{ current_user.telephone_boutique or "Téléphone de la boutique" }}</p>
+</div>
+
+<h2>🧾 Reçu de Vente</h2>
+
+<p><strong>Référence :</strong> {{ recu.reference }}</p>
+<p><strong>Date :</strong> {{ recu.date_creation.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+<p><strong>Montant total :</strong> {{ "{:,.0f}".format(recu.montant_total) }} FCFA</p>
+<p><strong>Montant payé :</strong> {{ "{:,.0f}".format(recu.montant_paye) }} FCFA</p>
+
+{% if recu.montant_paye < recu.montant_total %}
+  <p><strong>Restant (dette) :</strong> {{ "{:,.0f}".format(recu.montant_total - recu.montant_paye) }} FCFA</p>
+  {% if recu.nom_client %}
+    <p><strong>Client :</strong> {{ recu.nom_client }}</p>
+  {% endif %}
+  {% if recu.telephone_client %}
+    <p><strong>Téléphone :</strong> {{ recu.telephone_client }}</p>
+  {% endif %}
+  {% if recu.dette %}
+    <p><strong>📌 Dette liée :</strong> Réf #{{ recu.dette.id }}</p>
+    <p><strong>Montant de la dette :</strong> {{ "{:,.0f}".format(recu.dette.montant_total - recu.dette.montant_rembourse) }} FCFA</p>
+  {% endif %}
+{% else %}
+  <p><strong>Monnaie rendue :</strong> {{ "{:,.0f}".format(recu.monnaie_rendue) }} FCFA</p>
+  {% if recu.nom_client %}
+    <p><strong>Client :</strong> {{ recu.nom_client }}</p>
+  {% endif %}
+  {% if recu.telephone_client %}
+    <p><strong>Téléphone :</strong> {{ recu.telephone_client }}</p>
+  {% endif %}
+{% endif %}
+
+<h4>Produits vendus :</h4>
+<table>
+  <thead>
+    <tr>
+      <th>Nom</th>
+      <th>Quantité</th>
+      <th>Prix unitaire</th>
+      <th>Sous-total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ligne in lignes %}
+    <tr>
+      <td>{{ ligne.produit.nom }}</td>
+      <td>{{ ligne.quantite }}</td>
+      <td>{{ "{:,.0f}".format(ligne.prix_unitaire) }} FCFA</td>
+      <td>{{ "{:,.0f}".format(ligne.quantite * ligne.prix_unitaire) }} FCFA</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="3" style="text-align: right;"><strong>Total :</strong></td>
+      <td><strong>{{ "{:,.0f}".format(recu.montant_total) }} FCFA</strong></td>
+    </tr>
+  </tfoot>
+</table>
+
+<div class="signature">
+  <p><strong>Signature du vendeur :</strong></p>
+  <span></span>
+</div>
+
+</body>
+</html>

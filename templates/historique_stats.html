@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Historique des statistiques{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="text-center text-primary fw-bold mb-4">📈 Historique des statistiques mensuelles</h2>
+
+  {% if stats %}
+    <table class="table table-bordered table-hover shadow-sm text-center">
+      <thead class="table-light">
+        <tr>
+          <th>Mois</th>
+          <th>Chiffre d'affaires</th>
+          <th>Nombre de ventes</th>
+          <th>Enregistré le</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for stat in stats %}
+        <tr>
+          <td>{{ stat.mois }}/{{ stat.annee }}</td>
+          <td>{{ stat.chiffre_affaires | round(0) }} F CFA</td>
+          <td>{{ stat.nombre_ventes }}</td>
+          <td>{{ stat.date_enregistrement.strftime('%d/%m/%Y %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info text-center">Aucune statistique archivée pour le moment.</div>
+  {% endif %}
+</div>
+{% endblock %}

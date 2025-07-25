@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Corbeille des reçus{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>🗑️ Reçus supprimés</h2>
+    <a href="{{ url_for('recus') }}" class="btn btn-outline-primary">← Retour aux reçus</a>
+  </div>
+
+  {% if recus %}
+  <table class="table table-bordered text-center">
+    <thead>
+      <tr>
+        <th>Référence</th>
+        <th>Date</th>
+        <th>Montant</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for recu in recus %}
+      <tr>
+        <td>{{ recu.reference }}</td>
+        <td>{{ recu.date_creation.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+        <td>
+          {% if recu.montant_total is not none %}
+            {{ "{:,.0f}".format(recu.montant_total) }} FCFA
+          {% else %}
+            N/A
+          {% endif %}
+        </td>
+        <td>
+         <form method="POST" action="{{ url_for('restaurer_recu_view', recu_id=recu.id) }}" class="d-inline">
+  <button type="submit" class="btn btn-success btn-sm">Restaurer</button>
+</form>
+          <form action="{{ url_for('supprimer_definitif_recu', recu_id=recu.id) }}" method="POST" class="d-inline">
+            <button type="submit" class="btn btn-danger btn-sm">Supprimer définitivement</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>Aucun reçu dans la corbeille.</p>
+  {% endif %}
+</div>
+{% endblock %}

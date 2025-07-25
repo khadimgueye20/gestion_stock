@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  .background-blur {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('{{ url_for('static', filename='fond.jpg') }}') center center / cover no-repeat;
+    filter: blur(6px);
+    z-index: -1;
+  }
+
+  .reset-container {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    padding: 40px 30px;
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    max-width: 420px;
+    width: 100%;
+    color: #fff;
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #f0f0f0;
+  }
+
+  .form-control {
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+
+  h2 {
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .btn-primary {
+    border-radius: 30px;
+    padding: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+    color: white;
+  }
+
+  .alert {
+    font-size: 0.95rem;
+  }
+
+  .text-link {
+    font-size: 0.9rem;
+    color: #ffffff;
+    text-decoration: none;
+  }
+
+  .text-link:hover {
+    text-decoration: underline;
+    color: #f8f9fa;
+  }
+</style>
+
+<div class="background-blur"></div>
+
+<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+  <div class="reset-container">
+
+    <h2 class="text-center mb-4">🔑 Réinitialiser le mot de passe</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="post">
+      <div class="mb-3">
+        <label for="email" class="form-label">Adresse e-mail</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+          <input type="email" class="form-control" name="email" id="email" placeholder="ex : vous@email.com" required>
+        </div>
+      </div>
+
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary btn-lg">Envoyer le code</button>
+      </div>
+
+      <div class="text-center mt-3">
+        <a href="{{ url_for('login') }}" class="text-link">← Retour à la connexion</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

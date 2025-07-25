@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}À propos de Geytoris{% endblock %}
+
+{% block content %}
+<style>
+  body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Quicksand', sans-serif;
+  }
+
+  .background-blur {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('{{ url_for('static', filename='fond.jpg') }}') center center / cover no-repeat;
+    filter: blur(4px);
+    z-index: -1;
+  }
+
+  .a-propos-container {
+    background-color: rgba(255, 255, 255, 0.95);
+    color: #333;
+    padding: 40px 30px;
+    border-radius: 16px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
+    max-width: 850px;
+    margin: 5rem auto;
+  }
+
+  .texte-titre {
+    color: #003366;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .image-demo {
+    max-height: 280px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+
+  .a-propos-container h4 {
+    margin-top: 25px;
+    font-weight: 700;
+    color: #00558a;
+  }
+
+  ul li {
+    margin-bottom: 6px;
+    padding-left: 5px;
+  }
+
+  .btn-retour {
+    background-color: #00558a;
+    color: white;
+    font-weight: 600;
+    border-radius: 30px;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-retour:hover {
+    background-color: #003f6c;
+    color: #fff;
+    box-shadow: 0 0 8px rgba(0,0,0,0.2);
+  }
+
+  .img-admin {
+    max-width: 150px;
+    border-radius: 50%;
+    border: 3px solid #00558a;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+  }
+
+  .img-admin:hover {
+    transform: scale(1.05);
+  }
+
+  .a-propos-container {
+    padding: 40px 15px;
+}
+
+</style>
+
+<div class="background-blur"></div>
+
+<div class="container a-propos-container">
+  <h2 class="texte-titre">À propos de la plateforme Geytoris</h2>
+
+  <div class="text-center">
+    <img src="{{ url_for('static', filename='images/geytoris_demo.png') }}" alt="Image de la plateforme" class="img-fluid image-demo">
+  </div>
+
+  <h4>🎯 Objectif de la plateforme</h4>
+  <p>
+    <strong>Geytoris</strong> est une solution digitale conçue pour accompagner les commerçants dans la gestion intelligente de leurs stocks. Grâce à une interface intuitive et des outils efficaces, elle facilite le suivi des ventes, des dettes, des retours et bien plus encore.
+  </p>
+
+  <h4>🔧 Fonctionnalités principales</h4>
+  <ul>
+    <li>Gestion complète des produits, fournisseurs, ventes et retours</li>
+    <li>Génération automatique de reçus PDF</li>
+    <li>Suivi des dettes clients et remboursements</li>
+    <li>Corbeille intelligente (restaurer ou supprimer définitivement)</li>
+    <li>Tableaux de bord statistiques mensuels</li>
+    <li>Interface d'administration pour gérer les utilisateurs</li>
+  </ul>
+
+  <h4>🔐 Sécurité & confidentialité</h4>
+  <p>
+    La plateforme <strong>Geytoris</strong> intègre plusieurs niveaux de sécurité afin de garantir la confidentialité et la protection des données utilisateurs :
+  </p>
+  <ul>
+    <li>Connexion sécurisée avec authentification par mot de passe</li>
+    <li>Vérification par code lors de l’inscription et de la réinitialisation de mot de passe</li>
+    <li>Séparation claire des espaces utilisateurs (multi-commerçants)</li>
+    <li>Protection contre les accès non autorisés à l’interface d’administration</li>
+    <li>Suppression logique avec corbeille pour éviter les pertes accidentelles</li>
+    <li>Traitement des données sensibles conforme aux bonnes pratiques de sécurité</li>
+  </ul>
+  <p><em>La sécurité de vos informations est une priorité. Chaque utilisateur dispose de son propre espace, et les données sont strictement isolées et protégées.</em></p>
+
+  <hr class="my-4">
+
+  <div class="row align-items-center mt-4">
+    <div class="col-md-3 text-center">
+      <img src="{{ url_for('static', filename='images/khadim.jpg') }}" alt="Khadim Gueye" class="img-fluid img-admin">
+    </div>
+    <div class="col-md-9">
+      <h5 class="fw-bold mb-1" style="color:#00558a;">Khadim GUEYE</h5>
+      <p class="mb-0">Technicien Supérieur en Administration de base de données,</p>
+      <p class="mb-0">Développeur Python et passionné de technologies utiles pour les PME africaines.</p>
+      
+      <p class="mt-3 fw-semibold" style="color: #0d6efd;">
+  📧 Mail : <a href="mailto:gkhadim202@gmail.com" class="text-decoration-none" style="color: #0d6efd;">gkhadim202@gmail.com</a><br>
+  📞 Téléphone : <span style="color: #0d6efd;">+221 77 862 54 33</span>
+</p>
+
+    </div>
+  </div>
+
+  <div class="text-center mt-5">
+    <a href="{{ url_for('login') }}" class="btn btn-retour">
+      <i class="bi bi-arrow-left-circle"></i> Retour à la connexion
+    </a>
+  </div>
+</div>
+{% endblock %}

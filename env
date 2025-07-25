@@ -1,2 +1,2 @@
-DATABASE_URL=postgresql://postgres:touba202@localhost:5432/gestion_stock
+DATABASE_URL=postgresql://postgres:touba202@localhost:5432/gestion_stock?sslmode=require
 SECRET_KEY=une_cle_tres_secrete

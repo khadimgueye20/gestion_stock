@@ -2,18 +2,22 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{% block title %}Gestion de Stock{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Geytoris{% endblock %}</title>
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-  <!-- Police moderne Poppins -->
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="{{ url_for('static', filename='logo_geytoris.png') }}" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
 
 
   <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+    }
     .content {
       position: relative;
       z-index: 1;
@@ -40,29 +44,122 @@
     form label.form-label {
       font-weight: bold;
     }
+    .logo-navbar {
+      height: 60px;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    .nav-gold-1 { color: #d4af37 !important; font-weight: bold; }
+    .nav-gold-1:hover { color: #bfa12f !important; text-decoration: underline; }
+
+    .nav-gold-4 { color: #e1c16e !important; font-weight: bold; }
+    .nav-gold-4:hover { color: #cfae5f !important; text-decoration: underline; }
+
+    .nav-link { transition: color 0.3s ease; }
+
+    .nav-links-section {
+      background: linear-gradient(to right, #f0f0f0, #dcdcdc);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      border-radius: 12px;
+    }
+
+ @media (max-width: 576px) {
+  .nav-links-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .nav-links-section .nav-item {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .btn, .nav-link {
+    width: 100%;
+  }
+}
+
+.logo-navbar {
+  height: 60px;
+}
+@media (max-width: 576px) {
+  .logo-navbar {
+    height: 45px;
+  }
+}
+
+.nav-links-section a, .nav-links-section button, .nav-links-section span {
+  font-size: 0.95rem;
+}
+
+@media (max-width: 576px) {
+  .nav-links-section {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+  .nav-links-section a, .nav-links-section button {
+    width: 100%;
+  }
+  .nav-links-section .dropdown {
+    width: 100%;
+  }
+}
+
+
   </style>
 </head>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">KitStock</a>
 
- {% if current_user.is_authenticated %}
-<ul class="navbar-nav ms-auto align-items-center">
-  <li class="nav-item me-3">
-    <span class="nav-link">Connecté en tant que <strong>{{ current_user.nom_utilisateur }}</strong></span>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for('corbeille') }}">🗑️ Corbeille</a>
-  </li>
-  <li class="nav-item">
-    <a class="btn btn-outline-danger btn-sm ms-2" href="{{ url_for('logout') }}">Déconnexion</a>
-  </li>
-</ul>
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+      <img src="{{ url_for('static', filename='logo_geytoris.png') }}" alt="Logo Geytoris" height="80" class="logo-navbar me-2">
+    </a>
+
+    {% if current_user.is_authenticated %}
+<div class="d-flex flex-wrap justify-content-center align-items-center gap-3 nav-links-section px-3 py-2">
+
+  <a class="btn btn-light fw-bold" href="{{ url_for('index') }}">
+    <i class="bi bi-house-door-fill"></i> Accueil
+  </a>
+
+  <span class="d-flex align-items-center fw-bold">
+    Connecté : {{ current_user.nom_utilisateur }}
+    <a href="{{ url_for('modifier_infos_boutique') }}" class="btn btn-light btn-sm rounded-circle ms-2" style="width: 36px; height: 36px;">
+      <i class="bi bi-gear-fill"></i>
+    </a>
+  </span>
+
+  <a class="btn btn-light fw-bold" href="{{ url_for('corbeille') }}">
+    <i class="bi bi-trash3"></i> Corbeille
+  </a>
+
+  <button id="btn-deconnexion" class="btn btn-outline-danger fw-bold">
+    Déconnexion
+  </button>
+
+  <!-- Menu déroulant -->
+  <div class="dropdown">
+    <button class="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown">
+      <i class="bi bi-list"></i> Menu
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('fournisseurs') }}">📦 Fournisseurs</a></li>
+      <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('stats') }}">📊 Statistiques</a></li>
+      <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('liste_retours') }}">🔁 Retours</a></li>
+      <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('recus') }}">🧾 Reçus</a></li>
+      <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('dettes') }}">💳 Dettes</a></li>
+    </ul>
+  </div>
+
+</div>
 {% endif %}
 
   </div>
-</nav>
 </nav>
 
 <div class="container mt-3">
@@ -78,20 +175,44 @@
   {% endwith %}
 </div>
 
-  <div class="background-blur"></div>
+<div class="background-blur"></div>
 
-  <div class="content">
-    <div class="container my-5">
-      {% block content %}{% endblock %}
-    </div>
+<div class="content">
+  <div class="container my-5">
+    {% block content %}{% endblock %}
   </div>
+</div>
 
- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-{% block scripts %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Confirmation de déconnexion -->
 <script>
-  // Cacher automatiquement les alertes après 3 secondes
   document.addEventListener('DOMContentLoaded', function () {
+    const btnDeconnexion = document.getElementById('btn-deconnexion');
+    if (btnDeconnexion) {
+      btnDeconnexion.addEventListener('click', function () {
+        Swal.fire({
+          title: 'Se déconnecter ?',
+          text: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Oui, déconnecter',
+          cancelButtonText: 'Annuler',
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = "{{ url_for('logout') }}";
+          }
+        });
+      });
+    }
+
+    // Fermeture auto des alertes flash
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function (alert) {
       setTimeout(function () {
@@ -101,7 +222,35 @@
     });
   });
 </script>
-{% endblock %}
+
+{% block scripts %}{% endblock %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  document.querySelectorAll('.form-supprimer').forEach(form => {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();  // Empêche l'envoi immédiat
+
+      const nom = form.dataset.nom || 'ce produit';
+
+      Swal.fire({
+        title: 'Supprimer ?',
+        text: `Voulez-vous vraiment supprimer ${nom} ?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          form.submit();  // Soumettre le formulaire après confirmation
+        }
+      });
+    });
+  });
+</script>
+
+
 </body>
 </html>
-

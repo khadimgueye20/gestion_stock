@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Reçu de remboursement</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
+        h2 { margin-bottom: 10px; }
+        .info { margin-top: 20px; }
+        .ligne { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h2>🧾 Reçu de remboursement</h2>
+
+    <div class="info">
+        <div class="ligne"><strong>Client :</strong> {{ dette.client_nom }}</div>
+        <div class="ligne"><strong>Téléphone :</strong> {{ dette.client_telephone or "—" }}</div>
+        <div class="ligne"><strong>Date :</strong> {{ remboursement.date_remboursement.strftime('%d/%m/%Y %H:%M') }}</div>
+        <div class="ligne"><strong>Montant remboursé :</strong> {{ "{:,.0f}".format(remboursement.montant) }} FCFA</div>
+        <div class="ligne"><strong>ID Dette :</strong> {{ dette.id }}</div>
+        <div class="ligne"><strong>Utilisateur :</strong> {{ current_user.nom }}</div>
+    </div>
+
+    <div style="margin-top: 40px;">Merci pour votre confiance.</div>
+</body>
+</html>

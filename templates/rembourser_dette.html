@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Rembourser la dette{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">💰 Rembourser une dette</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Client :</strong> {{ dette.client_nom }}</p>
+            <p><strong>Téléphone :</strong> {{ dette.client_telephone or "—" }}</p>
+            <p><strong>Montant total :</strong> {{ "{:,.0f}".format(dette.montant_total) }} FCFA</p>
+            <p><strong>Montant remboursé :</strong> {{ "{:,.0f}".format(dette.montant_rembourse) }} FCFA</p>
+            <p><strong>Reste à payer :</strong> 
+                {{ "{:,.0f}".format(dette.montant_total - dette.montant_rembourse) }} FCFA</p>
+        </div>
+    </div>
+
+    <form method="POST" id="remboursement-form">
+        <div class="mb-3">
+            <label class="form-label">Montant à rembourser (FCFA)</label>
+            <input type="number" step="0.01" class="form-control" name="montant" required>
+        </div>
+        <button type="submit" class="btn btn-success">Valider le remboursement</button>
+        <a href="{{ url_for('dettes') }}" class="btn btn-secondary">Annuler</a>
+    </form>
+
+    {% if dette.remboursements %}
+    <div class="card mt-5">
+        <div class="card-header">
+            <h5 class="mb-0">📜 Historique des remboursements</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm table-bordered text-center mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Montant (FCFA)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in dette.remboursements %}
+                    <tr>
+                        <td>{{ r.date_remboursement.strftime("%d/%m/%Y %H:%M") }}</td>
+                        <td>{{ "{:,.0f}".format(r.montant) }}</td>
+                        <td>
+                            <a href="{{ url_for('remboursement_pdf', remboursement_id=r.id) }}" class="btn btn-sm btn-outline-dark" target="_blank">
+                                📄 Reçu PDF
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- SWEETALERT -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.getElementById('remboursement-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    Swal.fire({
+      title: 'Valider ce remboursement ?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Oui',
+      cancelButtonText: 'Annuler'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.submit();
+      }
+    });
+  });
+</script>
+{% endblock %}

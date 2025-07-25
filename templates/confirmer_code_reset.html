@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="background-blur"></div>
+
+<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+  <div class="container bg-light bg-opacity-75 p-4 rounded-4 shadow" style="max-width: 450px;">
+    <h2 class="text-center mb-4">📩 Entrez le code reçu</h2>
+
+    {% if utilisateur.reset_envoye_a %}
+      <p class="text-center text-muted small mb-4">
+        Un code a été envoyé à <strong>{{ utilisateur.email }}</strong> à
+        <strong>{{ utilisateur.reset_envoye_a.strftime('%H:%M:%S') }}</strong>.
+      </p>
+    {% endif %}
+
+    {% if temps_restant > 0 %}
+      <p class="text-center text-danger fw-bold" id="timer">
+        Le code expire dans <span id="temps">{{ temps_restant }}</span> secondes...
+      </p>
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="post">
+      <div class="mb-3">
+        <label for="code" class="form-label">Code à 6 chiffres</label>
+        <input type="text" class="form-control" name="code" id="code" maxlength="6" pattern="\d{6}" required>
+      </div>
+      <div class="d-grid">
+        <button type="submit" class="btn btn-warning btn-lg fw-bold">Vérifier le code</button>
+      </div>
+    </form>
+
+    <form method="post" action="{{ url_for('renvoyer_code_reset', user_id=utilisateur.id) }}" class="text-center mt-3">
+      <button type="submit" class="btn btn-link text-decoration-underline">Renvoyer un nouveau code</button>
+    </form>
+
+    <!-- ✅ Bouton simple "Annuler" -->
+    <div class="text-center mt-2">
+      <a href="{{ url_for('login') }}" class="btn btn-outline-secondary"
+         onclick="return confirm('Êtes-vous sûr de vouloir annuler la procédure de réinitialisation ?')">
+        Annuler
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ Script compte à rebours -->
+<script>
+  let seconds = parseInt(document.getElementById("temps")?.textContent || "0");
+
+  function updateTimer() {
+    if (seconds > 0) {
+      seconds--;
+      const minutes = String(Math.floor(seconds / 60)).padStart(2, '0');
+      const secs = String(seconds % 60).padStart(2, '0');
+      document.getElementById("temps").textContent = `${minutes}:${secs}`;
+    } else {
+      document.getElementById("timer").textContent = "⏳ Le code a expiré. Veuillez demander un nouveau code.";
+    }
+  }
+
+  if (seconds > 0) {
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  }
+</script>
+{% endblock %}

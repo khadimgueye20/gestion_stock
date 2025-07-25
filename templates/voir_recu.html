@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Reçu de vente{% endblock %}
+
+{% block content %}
+<div class="container my-4" id="recu">
+
+  <!-- Informations de la boutique -->
+  <div class="text-center mb-4">
+    {% if current_user.logo %}
+      <img src="{{ url_for('static', filename=current_user.logo.split('static/')[-1]) }}" alt="Logo" width="120" class="mb-2">
+    {% endif %}
+    <h4 class="mb-1">{{ current_user.nom_boutique or "Nom de la boutique" }}</h4>
+    <p class="mb-0">{{ current_user.adresse_boutique or "Adresse de la boutique" }}</p>
+    <p class="mb-2">{{ current_user.telephone_boutique or "Téléphone de la boutique" }}</p>
+
+    {% if not current_user.nom_boutique or not current_user.adresse_boutique or not current_user.telephone_boutique or not current_user.logo %}
+      <div class="alert alert-warning mt-3">
+        ⚠️ Informations de la boutique incomplètes. 
+        <a href="{{ url_for('modifier_infos_boutique') }}" class="btn btn-sm btn-outline-dark mt-2">Compléter maintenant</a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Actions -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>🧾 Reçu de vente</h2>
+    <div>
+      <a href="{{ url_for('recu_pdf', recu_id=recu.id) }}" class="btn btn-outline-secondary">📄 Télécharger PDF</a>
+      <button onclick="window.print()" class="btn btn-outline-primary">🖨️ Imprimer</button>
+    </div>
+  </div>
+
+  <!-- Détails du reçu -->
+  <div class="card p-4 text-center mb-3">
+    <p><strong>Référence :</strong> {{ recu.reference }}</p>
+    <p><strong>Date :</strong> {{ recu.date_creation.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+    <p><strong>Montant total :</strong> {{ "{:,.0f}".format(recu.montant_total) }} FCFA</p>
+    <p><strong>Montant payé :</strong> {{ "{:,.0f}".format(recu.montant_paye) }} FCFA</p>
+
+    {% if recu.montant_paye < recu.montant_total %}
+      <p><strong>Restant (dette) :</strong> {{ "{:,.0f}".format(recu.montant_total - recu.montant_paye) }} FCFA</p>
+    {% else %}
+      <p><strong>Monnaie rendue :</strong> {{ "{:,.0f}".format(recu.monnaie_rendue) }} FCFA</p>
+    {% endif %}
+
+    {% if recu.nom_client %}
+      <p><strong>Client :</strong> {{ recu.nom_client }}</p>
+    {% endif %}
+    {% if recu.telephone_client %}
+      <p><strong>Téléphone :</strong> {{ recu.telephone_client }}</p>
+    {% endif %}
+
+    {% if recu.dette %}
+      <a href="{{ url_for('rembourser_dette', dette_id=recu.dette.id) }}" class="btn btn-outline-warning btn-sm mt-2 no-print">
+        📌 Dette liée
+      </a>
+      <p><strong>Montant de la dette :</strong> {{ "{:,.0f}".format(recu.dette.montant_total - recu.dette.montant_rembourse) }} FCFA</p>
+    {% endif %}
+  </div>
+
+  <!-- Produits -->
+  <h5 class="text-center mt-4 mb-3">Produits vendus</h5>
+  <table class="table table-bordered text-center">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Quantité</th>
+        <th>Prix unitaire</th>
+        <th>Sous-total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ligne in lignes %}
+      <tr>
+        <td>{{ ligne.produit.nom }}</td>
+        <td>{{ ligne.quantite }}</td>
+        <td>{{ "{:,.0f}".format(ligne.prix_unitaire) }} FCFA</td>
+        <td>{{ "{:,.0f}".format(ligne.quantite * ligne.prix_unitaire) }} FCFA</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="text-end mt-4">
+    <p><strong>Total : {{ "{:,.0f}".format(recu.montant_total) }} FCFA</strong></p>
+  </div>
+
+  <div class="text-center mt-5">
+    <p><strong>Signature du vendeur</strong></p>
+    <p>_____________________________</p>
+  </div>
+
+  <div class="text-center mt-4 no-print">
+    <a href="{{ url_for('recus') }}" class="btn btn-secondary">⬅️ Retour à l'historique</a>
+  </div>
+</div>
+
+<!-- Impression -->
+<style>
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #recu, #recu * {
+      visibility: visible;
+    }
+    #recu {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    .no-print {
+      display: none !important;
+    }
+  }
+</style>
+{% endblock %}

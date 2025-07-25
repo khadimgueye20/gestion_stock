@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Ajouter un Fournisseur et ses Produits</h2>
+
+    <form method="POST">
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <strong>Informations du fournisseur</strong>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="nom" class="form-label">Nom</label>
+                    <input type="text" name="nom" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="telephone" class="form-label">Téléphone</label>
+                    <input type="text" name="telephone" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label for="adresse" class="form-label">Adresse</label>
+                    <textarea name="adresse" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-success">Enregistrer</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function ajouterProduit() {
+        const container = document.getElementById('produitsContainer');
+        const row = document.createElement('div');
+        row.className = 'row mb-3 produit-row';
+        row.innerHTML = `
+            <div class="col-md-4">
+                <input type="text" name="produit_nom[]" class="form-control" placeholder="Nom du produit" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" step="0.01" name="produit_prix[]" class="form-control" placeholder="Prix unitaire" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" name="produit_quantite[]" class="form-control" placeholder="Quantité" required>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-sm" onclick="supprimerProduit(this)">✖</button>
+            </div>
+        `;
+        container.appendChild(row);
+    }
+
+    function supprimerProduit(btn) {
+        btn.closest('.produit-row').remove();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}Fournisseurs - Geytoris{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2 class="mb-4 text-center">
+    📦 <strong>Liste des Fournisseurs</strong>
+  </h2>
+
+  <div class="d-flex justify-content-between mb-3">
+    <a href="{{ url_for('ajouter_fournisseur') }}" class="btn btn-ajouter">
+      <i class="bi bi-plus-circle"></i> Ajouter un fournisseur
+    </a>
+
+    <a href="{{ url_for('corbeille_fournisseurs') }}" class="btn btn-danger">
+      <i class="bi bi-trash3-fill"></i> Corbeille fournisseur
+    </a>
+  </div>
+
+  <!-- 🔍 Barre de recherche -->
+  <input type="text" id="searchFournisseur" class="form-control mb-3" placeholder="🔍 Rechercher par nom, téléphone, email ou adresse...">
+
+  {% if fournisseurs %}
+    <div class="table-responsive">
+      <table id="fournisseurTable" class="table table-bordered table-striped text-center align-middle">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Téléphone</th>
+            <th>Email</th>
+            <th>Adresse</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in fournisseurs %}
+          <tr>
+            <td>{{ f.nom }}</td>
+            <td>{{ f.telephone }}</td>
+            <td>{{ f.email }}</td>
+            <td>{{ f.adresse }}</td>
+            <td>
+              <div class="d-flex gap-2 justify-content-center">
+                <a href="{{ url_for('modifier_fournisseur', id=f.id) }}" class="btn btn-warning btn-sm">
+                  <i class="bi bi-pencil"></i> Modifier
+                </a>
+                <button class="btn btn-danger btn-sm btn-supprimer-fournisseur"
+                        data-id="{{ f.id }}"
+                        data-nom="{{ f.nom }}">
+                  <i class="bi bi-trash"></i> Supprimer
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info text-center">
+      Aucun fournisseur enregistré pour l’instant.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // 🔁 Confirmation suppression
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.btn-supprimer-fournisseur').forEach(button => {
+      button.addEventListener('click', function () {
+        const fournisseurId = this.dataset.id;
+        const nomFournisseur = this.dataset.nom;
+
+        Swal.fire({
+          title: 'Confirmer la suppression',
+          text: `Voulez-vous vraiment supprimer le fournisseur "${nomFournisseur}" ?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Oui, supprimer',
+          cancelButtonText: 'Annuler',
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/fournisseur/supprimer/${fournisseurId}`;
+            document.body.appendChild(form);
+            form.submit();
+          }
+        });
+      });
+    });
+
+    // 🔍 Filtrage en temps réel
+    document.getElementById('searchFournisseur').addEventListener('keyup', function () {
+      const searchValue = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#fournisseurTable tbody tr');
+
+      rows.forEach(row => {
+        const nom = row.cells[0].textContent.toLowerCase();
+        const tel = row.cells[1].textContent.toLowerCase();
+        const email = row.cells[2].textContent.toLowerCase();
+        const adresse = row.cells[3].textContent.toLowerCase();
+
+        if (
+          nom.includes(searchValue) ||
+          tel.includes(searchValue) ||
+          email.includes(searchValue) ||
+          adresse.includes(searchValue)
+        ) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

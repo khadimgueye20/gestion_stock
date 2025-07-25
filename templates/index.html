@@ -1,136 +1,74 @@
 {% extends 'base.html' %}
-
-{% block title %}Gestion de Stock{% endblock %}
+{% block title %}Geytoris - Produits{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-12 col-lg-10 col-xl-8">
+<div class="container mt-4">
 
-      <!-- Titre -->
-      <div class="d-flex align-items-center justify-content-between mb-4">
-  <h1 class="mb-0">KitStock</h1>
-  <a href="{{ url_for('index') }}" class="btn btn-outline-light">Accueil</a>
-</div>
+  <!-- Logo et titre -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 text-center text-md-start">
+    <img src="{{ url_for('static', filename='logo_geytoris.png') }}" alt="Geytoris Logo" height="60" class="mb-3 mb-md-0">
+    <h2 class="fw-bold fs-5 text-uppercase mb-0" style="color: #343a40;">Gestion des produits</h2>
+  </div>
 
+  <!-- Formulaire d'ajout -->
+  <div class="card shadow-lg mb-4 border-0 rounded-4">
+    <div class="card-body">
+      <h4 class="text-center mb-4 fw-bold" style="color: #e0a800;">Ajouter un nouveau produit</h4>
 
-      <!-- Formulaire -->
-      <h2 class="mb-3">Ajouter un produit</h2>
-      <form method="POST" action="/ajouter" class="row g-3 mb-4">
-        <div class="col-md-4 d-flex flex-column justify-content-center">
-          <label for="nom" class="form-label text-center">Nom du produit :</label>
-          <input type="text" class="form-control" id="nom" name="nom" required />
+      <form method="POST" action="/ajouter" class="row g-4">
+        <div class="col-12 col-md-6 col-lg-3">
+          <label class="form-label">Nom du produit</label>
+          <input type="text" class="form-control" name="nom" required>
         </div>
-        <div class="col-md-4 d-flex flex-column justify-content-center">
-          <label for="description" class="form-label text-center">Description :</label>
-          <input type="text" class="form-control" id="description" name="description" />
+        <div class="col-12 col-md-6 col-lg-3">
+          <label class="form-label">Description</label>
+          <input type="text" class="form-control" name="description">
         </div>
-        <div class="col-md-2 d-flex flex-column justify-content-center">
-          <label for="quantite" class="form-label text-center">Quantité :</label>
-          <input type="number" class="form-control" id="quantite" name="quantite" required min="1" />
+        <div class="col-12 col-md-6 col-lg-3">
+          <label class="form-label">Quantité</label>
+          <input type="number" class="form-control" name="quantite" min="1" required>
         </div>
-        <div class="col-md-2 d-flex flex-column justify-content-center">
-          <label for="prix_unitaire" class="form-label text-center">Prix unitaire :</label>
-          <input type="number" step="0.01" name="prix_unitaire" id="prix_unitaire" class="form-control" required />
+        <div class="col-12 col-md-6 col-lg-3">
+          <label class="form-label">Prix unitaire (FCFA)</label>
+          <input type="number" step="0.01" class="form-control" name="prix_unitaire" required>
         </div>
-        <div class="col-12 d-flex justify-content-end">
-          <button type="submit" class="btn btn-ajouter">Ajouter</button>
+        <div class="col-12 col-md-6 col-lg-3">
+          <label class="form-label">Fournisseur</label>
+          <select class="form-select" name="fournisseur_id">
+            <option value="" disabled {% if not fournisseur_id_selectionne %}selected{% endif %}>-- Sélectionner --</option>
+            {% for fournisseur in fournisseurs %}
+            <option value="{{ fournisseur.id }}" {% if fournisseur_id_selectionne == fournisseur.id|string %}selected{% endif %}>{{ fournisseur.nom }}</option>
+            {% endfor %}
+          </select>
+          <small><a href="{{ url_for('ajouter_fournisseur') }}">Nouveau fournisseur</a></small>
+        </div>
+        <div class="col-12 text-end">
+          <button type="submit" class="btn btn-outline-success px-4">Ajouter</button>
         </div>
       </form>
+    </div>
+  </div>
 
-      <!-- Alerte rupture -->
-      {% if ruptures %}
-      <div class="alert alert-danger">
-        <h5 class="alert-heading">❌ Rupture de stock :</h5>
-        <ul class="mb-0">
-          {% for produit in ruptures %}
-            <li><strong>{{ produit.nom }}</strong> est en rupture (0 en stock)</li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% endif %}
+  <!-- Recherche et bouton vente -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch gap-3 mb-4">
+    <input type="search" id="recherche" class="form-control" placeholder="🔍 Rechercher un produit...">
+    <a href="{{ url_for('effectuer_vente') }}" class="btn fw-bold text-white" style="background-color: #e0a800; white-space: nowrap;">🛒 Effectuer une vente</a>
+  </div>
 
-      <!-- Recherche -->
-      <div class="mb-2">
-        <input type="text" id="searchInput" class="form-control" placeholder="Rechercher un produit...">
-      </div>
+  <!-- Table produits -->
+  <div id="resultats-produits">
+    {% include 'partials/_table_produits.html' %}
+  </div>
+</div>
 
-      <a href="{{ url_for('historique') }}" class="btn btn-info mb-3">Voir l'historique des ventes</a>
-
-      <!-- Tableau responsive -->
-      <div class="table-responsive">
-        <table class="table table-striped table-bordered text-center align-middle" id="produitTable">
-          <thead class="table-light">
-            <tr>
-              <th>ID</th>
-              <th>Nom du produit</th>
-              <th class="d-none d-sm-table-cell">Description</th>
-              <th>Prix unitaire</th>
-              <th>Quantité</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-  {% for item in stock %}
-  <tr>
-    <td>{{ item.id }}</td>
-    <td>{{ item.nom }}</td>
-    <td class="d-none d-sm-table-cell">{{ item.description }}</td>
-    <td>{{ "{:,.0f}".format(item.prix_unitaire) }} FCFA</td>
-    <td>
-      {% if item.quantite == 0 %}
-        <span class="badge bg-danger">Rupture</span>
-      {% else %}
-        {{ item.quantite }}
-      {% endif %}
-    </td>
-    <td>
-      <div class="d-flex flex-column flex-sm-row gap-1 justify-content-center">
-        <a href="{{ url_for('modifier', id=item.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-        <a href="{{ url_for('vendre', id=item.id) }}" class="btn btn-success btn-sm">Vendre</a>
-        <form method="POST" action="{{ url_for('supprimer_produit', id=item.id) }}" class="form-supprimer" data-nom="{{ item.nom }}">
-  <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
-</form>
-
-      </div>
-    </td>
-  </tr>
-  {% endfor %}
-</tbody>
-
-        </table>
-      </div>
-
-    </div> <!-- Fin col -->
-  </div> <!-- Fin row -->
-</div> <!-- Fin container -->
-{% endblock %}
-
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-  // Confirmation suppression
-  document.querySelectorAll('.form-supprimer').forEach(form => {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault(); // Bloque l'envoi immédiat
-      const nom = this.dataset.nom;
-
-      Swal.fire({
-        title: 'Êtes-vous sûr ?',
-        text: `Le produit "${nom}" sera définitivement supprimé.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Oui, supprimer',
-        cancelButtonText: 'Annuler'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.submit(); // Envoie du formulaire après confirmation
-        }
-      });
+document.getElementById('recherche').addEventListener('input', function () {
+  const recherche = this.value;
+  fetch(`/rechercher_produits?q=${encodeURIComponent(recherche)}`)
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById('resultats-produits').innerHTML = html;
     });
-  });
+});
 </script>
-
 {% endblock %}

@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Liste des dettes{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">📄 Liste des dettes</h2>
+
+    <a href="{{ url_for('corbeille_dettes') }}" class="btn btn-outline-danger mb-3 float-end">🗑️ Corbeille</a>
+
+    <!-- 🔍 Barre de recherche -->
+    <input type="text" id="searchInput" class="form-control mb-3" placeholder="🔍 Rechercher un client...">
+
+    {% if dettes %}
+    <div class="table-responsive">
+        <table id="detteTable" class="table table-bordered text-center align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Client</th>
+                    <th>Téléphone</th>
+                    <th>Date</th>
+                    <th>Montant total</th>
+                    <th>Remboursé</th>
+                    <th>Reste à payer</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dette in dettes %}
+                <tr>
+                    <td>{{ dette.client_nom }}</td>
+                    <td>{{ dette.client_telephone or "—" }}</td>
+                    <td>{{ dette.date_creation.strftime("%d/%m/%Y") }}</td>
+                    <td>{{ "{:,.0f}".format(dette.montant_total) }} FCFA</td>
+                    <td>{{ "{:,.0f}".format(dette.montant_rembourse) }} FCFA</td>
+                    <td>{{ "{:,.0f}".format(dette.montant_total - dette.montant_rembourse) }} FCFA</td>
+                    <td>
+                        {% if dette.montant_rembourse >= dette.montant_total %}
+                            <span class="badge bg-success">Payée</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">En attente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if dette.montant_rembourse < dette.montant_total %}
+                        <a href="{{ url_for('rembourser_dette', dette_id=dette.id) }}" class="btn btn-sm btn-primary">
+                            Rembourser
+                        </a>
+                        {% else %}
+                        —
+                        {% endif %}
+
+                        <form method="POST" action="{{ url_for('supprimer_dette', dette_id=dette.id) }}" class="form-supprimer-dette d-inline" data-nom="{{ dette.client_nom }}">
+                            <button type="submit" class="btn btn-sm btn-danger">🗑️ Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        Aucune dette enregistrée pour le moment.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+  // 🔁 Filtrage automatique
+  document.getElementById('searchInput').addEventListener('keyup', function () {
+    const searchValue = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#detteTable tbody tr');
+
+    rows.forEach(row => {
+      const clientName = row.cells[0].textContent.toLowerCase();
+      const telephone = row.cells[1].textContent.toLowerCase();
+      if (clientName.includes(searchValue) || telephone.includes(searchValue)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+
+  // ❌ Confirmation suppression
+  document.querySelectorAll('.form-supprimer-dette').forEach(form => {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const nom = this.dataset.nom;
+      Swal.fire({
+        title: 'Supprimer cette dette ?',
+        text: `La dette du client "${nom}" sera déplacée dans la corbeille.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

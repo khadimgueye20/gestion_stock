@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Retour de produits – {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4 text-white text-center">↩️ Retourner des produits du reçu n°{{ recu.id }}</h2>
+
+  <form method="POST" class="p-4 rounded shadow bg-light text-dark">
+    {% for ligne in lignes %}
+      <div class="mb-4">
+        <label class="form-label fw-semibold">{{ ligne.produit.nom }}</label>
+        <div class="row g-2">
+          <div class="col-md-4">
+            <input
+              type="number"
+              class="form-control"
+              name="qte_{{ ligne.produit.id }}"
+              placeholder="Quantité (max {{ ligne.quantite }})"
+              min="0"
+              max="{{ ligne.quantite }}"
+            >
+          </div>
+          <div class="col-md-8">
+            <input
+              type="text"
+              class="form-control"
+              name="motif_{{ ligne.produit.id }}"
+              placeholder="Motif du retour (facultatif)"
+            >
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+
+    <div class="d-flex justify-content-between mt-4">
+      <a href="{{ url_for('recus') }}" class="btn btn-secondary">Annuler</a>
+        ← Annuler
+      </a>
+      <button type="submit" class="btn btn-danger fw-bold">
+        ✅ Enregistrer les retours
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

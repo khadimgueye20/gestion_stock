@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Modifier Reçu{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h3>Modifier Reçu n° {{ recu.reference }}</h3>
+  <form method="post">
+    <div class="form-group">
+      <label>Nom Client</label>
+      <input type="text" name="nom_client" class="form-control" value="{{ recu.nom_client }}">
+    </div>
+    <div class="form-group">
+      <label>Téléphone Client</label>
+      <input type="text" name="telephone_client" class="form-control" value="{{ recu.telephone_client }}">
+    </div>
+    <div class="form-group">
+      <label>Montant Payé</label>
+      <input type="number" name="montant_paye" class="form-control" value="{{ recu.montant_paye }}">
+    </div>
+    <div class="form-group">
+      <label>Monnaie Rendue</label>
+      <input type="number" name="monnaie_rendue" class="form-control" value="{{ recu.monnaie_rendue }}">
+    </div>
+    <!-- Ajoute d'autres champs selon ce que tu veux permettre de modifier -->
+
+    <button type="submit" class="btn btn-primary mt-3">Enregistrer</button>
+    <a href="{{ url_for('recus') }}" class="btn btn-secondary mt-3">Annuler</a>
+  </form>
+</div>
+{% endblock %}

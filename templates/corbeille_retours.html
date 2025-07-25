@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Corbeille des retours{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+  <!-- Titre + Bouton retour -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">🗑️ Corbeille des retours</h2>
+    <a href="{{ url_for('liste_retours') }}" class="btn btn-light text-dark shadow-sm px-3 py-2">
+  <i class="bi bi-arrow-left-circle me-1"></i> Retour aux retours
+</a>
+  </div>
+
+  {% if retours %}
+  <div class="table-responsive">
+    <table class="table table-bordered table-dark table-hover text-center align-middle">
+      <thead class="table-light text-dark">
+        <tr>
+          <th>Date</th>
+          <th>Produit</th>
+          <th>Quantité</th>
+          <th>Motif</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for retour in retours %}
+        <tr>
+          <td>{{ retour.date_retour.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td>{{ retour.produit.nom }}</td>
+          <td>{{ retour.quantite_retournee }}</td>
+          <td>{{ retour.motif or '-' }}</td>
+          <td class="d-flex justify-content-center gap-2">
+            <form method="POST" action="{{ url_for('restaurer_retour', retour_id=retour.id) }}" class="d-inline">
+              <button type="submit" class="btn btn-success btn-sm">
+                <i class="bi bi-arrow-counterclockwise"></i> Restaurer
+              </button>
+            </form>
+            <form method="POST" action="{{ url_for('supprimer_retour_definitif', retour_id=retour.id) }}"
+                  class="d-inline form-supprimer-definitif"
+                  data-produit="{{ retour.produit.nom }}">
+              <button type="submit" class="btn btn-danger btn-sm">
+                <i class="bi bi-trash3-fill"></i> Supprimer
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="alert alert-secondary text-center" role="alert">
+    Aucun retour dans la corbeille.
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.querySelectorAll('.form-supprimer-definitif').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const produit = this.dataset.produit;
+
+      Swal.fire({
+        title: 'Suppression définitive',
+        html: `Le retour du produit <b>"${produit}"</b> sera <u>supprimé définitivement</u>.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

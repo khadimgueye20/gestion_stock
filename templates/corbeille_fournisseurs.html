@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Corbeille - Fournisseurs supprimés{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="text-center m-0">🗑 Fournisseurs supprimés</h2>
+    <a href="{{ url_for('fournisseurs') }}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left-circle"></i> Retour aux fournisseurs
+    </a>
+  </div>
+
+  {% if fournisseurs %}
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped text-center">
+        <thead class="table-dark">
+          <tr>
+            <th>Nom</th>
+            <th>Téléphone</th>
+            <th>Email</th>
+            <th>Adresse</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in fournisseurs %}
+          <tr>
+            <td>{{ f.nom }}</td>
+            <td>{{ f.telephone }}</td>
+            <td>{{ f.email }}</td>
+            <td>{{ f.adresse }}</td>
+            <td>
+              <div class="d-flex justify-content-center gap-2">
+                <!-- Restaurer -->
+                <form method="POST" action="{{ url_for('restaurer_fournisseur', id=f.id) }}">
+                  <button type="submit" class="btn btn-success btn-sm">
+                    ✅ Restaurer
+                  </button>
+                </form>
+
+                <!-- Supprimer définitivement -->
+                <button class="btn btn-danger btn-sm btn-supprimer-def" 
+                        data-id="{{ f.id }}" 
+                        data-nom="{{ f.nom }}">
+                  🗑 Supprimer
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-info text-center">
+      Aucun fournisseur supprimé pour l’instant.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.btn-supprimer-def').forEach(button => {
+    button.addEventListener('click', function () {
+      const fournisseurId = this.dataset.id;
+      const nomFournisseur = this.dataset.nom;
+
+      Swal.fire({
+        title: 'Supprimer définitivement ?',
+        text: `Le fournisseur "${nomFournisseur}" sera supprimé sans retour.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = `/fournisseur/supprimer_definitivement/${fournisseurId}`;
+          document.body.appendChild(form);
+          form.submit();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

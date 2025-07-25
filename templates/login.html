@@ -3,16 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Connexion</title>
+  <title>{{ app_name }} – Connexion</title>
+
+  <!-- Bootstrap & Icônes -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+
+  <!-- Google Font : Quicksand -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
 
   <style>
     body, html {
       height: 100%;
       margin: 0;
       padding: 0;
+      font-family: 'Quicksand', sans-serif;
+      overflow: hidden;
     }
 
     .background-blur {
@@ -22,65 +28,135 @@
       width: 100%;
       height: 100%;
       background: url('{{ url_for('static', filename='fond.jpg') }}') center center / cover no-repeat;
-      filter: blur(5px);
+      filter: blur(6px);
       z-index: -1;
     }
 
-    .container {
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      max-width: 400px;
-      margin-top: 5rem;
-      color: white;
+    .login-container {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+      max-width: 420px;
+      width: 100%;
+      color: #fff;
+    }
+
+    .texte-bienvenue {
+      font-size: 1.1rem;
+      color: #e1f0ff;
+      font-weight: 600;
     }
 
     .form-label {
-      color: white;
+      font-weight: 500;
+    }
+
+    .form-control {
+      border-radius: 8px;
+    }
+
+    .btn-outline-light {
+      border-radius: 30px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline-light:hover {
+      background-color: #ffffff;
+      color: #000;
+    }
+
+    .btn-a-propos {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      border: 1px solid #ffffff88;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(3px);
+      box-shadow: 0 0 5px rgba(255,255,255,0.3);
+    }
+
+    .btn-a-propos:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 0 8px rgba(255,255,255,0.6);
+    }
+
+    .link-white:hover {
+      text-decoration: underline;
+      color: #f8f9fa;
     }
   </style>
 </head>
 <body>
 
+<!-- Bouton À propos en haut à droite -->
+<div style="position: absolute; top: 20px; right: 30px; z-index: 10;">
+  <a href="{{ url_for('a_propos') }}" class="btn-a-propos">
+    <i class="bi bi-info-circle me-1"></i> À propos
+  </a>
+</div>
+
 <div class="background-blur"></div>
 
 <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
-  <div class="container">
+  <div class="login-container text-white">
 
-  <h2 class="text-center mb-4">Connexion </h2>
+    <!-- Titre stylisé -->
+    <p class="text-center texte-bienvenue mb-2">
+      Bienvenue sur <strong style="color: #ffffff;">{{ app_name }}</strong><br>
+      Connectez-vous pour gérer vos stocks simplement.
+    </p>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    <h3 class="text-center mb-4 fw-bold">Connexion</h3>
+
+    <!-- Messages flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Formulaire -->
+    <form method="POST">
+      <div class="mb-3">
+        <label for="nom_utilisateur" class="form-label">Nom d'utilisateur</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input type="text" class="form-control" id="nom_utilisateur" name="nom_utilisateur" required>
         </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+      </div>
 
-  <form method="POST">
-   <div class="mb-3">
-  <label for="nom_utilisateur" class="form-label">Nom d'utilisateur</label>
-  <div class="input-group">
-    <span class="input-group-text"><i class="bi bi-person"></i></span>
-    <input type="text" class="form-control" id="nom_utilisateur" name="nom_utilisateur" required>
+      <div class="mb-3">
+        <label for="mot_de_passe" class="form-label">Mot de passe</label>
+        <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" required>
+      </div>
+
+      <div class="d-grid">
+        <button type="submit" class="btn btn-outline-light btn-lg fw-bold">Se connecter</button>
+      </div>
+
+      <div class="text-center mt-3">
+        <a href="{{ url_for('mot_de_passe_oublie') }}" class="text-white link-white">Mot de passe oublié ?</a>
+      </div>
+
+      <div class="text-center mt-2">
+        <a href="{{ url_for('register') }}" class="text-white link-white">Créer un compte</a>
+      </div>
+    </form>
+
   </div>
-</div>
-
-    <div class="mb-3">
-      <label for="mot_de_passe" class="form-label">Mot de passe</label>
-      <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" required>
-    </div>
-    <div class="d-grid">
-      <button type="submit" class="btn btn-outline-light btn-lg fw-bold">Se connecter</button>
-    </div>
-    <div class="text-center mt-3">
-      <a href="{{ url_for('register') }}" class="text-white">Créer un compte</a>
-    </div>
-  </form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

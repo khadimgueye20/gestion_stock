@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>RAPPORT MENSUEL - {{ mois|capitalize }}</title>
+  <style>
+    body {
+      font-family: DejaVu Sans, sans-serif;
+      margin: 40px;
+      font-size: 12px;
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: bold;
+      margin-top: 30px;
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 25px;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .signature {
+      margin-top: 50px;
+    }
+    .footer {
+      margin-top: 40px;
+      font-size: 10px;
+      text-align: right;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>■ Rapport Mensuel</h1>
+  <h2>{{ mois|capitalize }} {{ now.year }}</h2>
+
+  <div class="section-title">■ Chiffres clés</div>
+  <table>
+    <tr>
+      <th>Chiffre d'affaires</th>
+      <td>{{ total_ventes | round(0) }} FCFA</td>
+    </tr>
+    <tr>
+      <th>Nombre de ventes</th>
+      <td>{{ nb_ventes }}</td>
+    </tr>
+  </table>
+
+  {% if produits_vendus %}
+  <div class="section-title">■ Produits les plus vendus</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Produit</th>
+        <th>Quantité vendue</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for produit, total in produits_vendus %}
+      <tr>
+        <td>{{ produit }}</td>
+        <td>{{ total }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  {% if stock_faible %}
+  <div class="section-title">■ Produits à stock faible</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Produit</th>
+        <th>Quantité restante</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for produit in stock_faible %}
+      <tr>
+        <td>{{ produit.nom }}</td>
+        <td>{{ produit.quantite }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <div class="signature">
+    Signature : ..................................................
+  </div>
+
+  <div class="footer">
+    Généré le {{ now.strftime('%d/%m/%Y à %H:%M') }}
+  </div>
+
+</body>
+</html>

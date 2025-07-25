@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Paramètres de la boutique{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="card shadow-sm p-4">
+    <h2 class="mb-4">Paramètres de la boutique</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label for="nom_boutique" class="form-label">Nom de la boutique</label>
+        <input type="text" class="form-control" name="nom_boutique" value="{{ current_user.nom_boutique or '' }}">
+      </div>
+
+      <div class="mb-3">
+        <label for="adresse_boutique" class="form-label">Adresse</label>
+        <input type="text" class="form-control" name="adresse_boutique" value="{{ current_user.adresse_boutique or '' }}">
+      </div>
+
+      <div class="mb-3">
+        <label for="telephone_boutique" class="form-label">Téléphone</label>
+        <input type="text" class="form-control" name="telephone_boutique" value="{{ current_user.telephone_boutique or '' }}">
+      </div>
+
+      <div class="mb-3">
+        <label for="logo" class="form-label">Logo de la boutique</label>
+        <input type="file" class="form-control" name="logo">
+        {% if current_user.logo %}
+          <div class="mt-2">
+            <p class="mb-1">Logo actuel :</p>
+            <img src="{{ url_for('static', filename=current_user.logo.split('static/')[-1]) }}" alt="Logo actuel" height="100" class="border rounded">
+          </div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary">Enregistrer</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Modifier Fournisseur{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h3 class="text-center mb-4">✏️ Modifier le fournisseur</h3>
+  <form method="POST" class="row g-3">
+    <div class="col-md-6">
+      <label for="nom" class="form-label">Nom</label>
+      <input type="text" class="form-control" name="nom" value="{{ fournisseur.nom }}" required>
+    </div>
+    <div class="col-md-6">
+      <label for="telephone" class="form-label">Téléphone</label>
+      <input type="text" class="form-control" name="telephone" value="{{ fournisseur.telephone }}">
+    </div>
+    <div class="col-md-6">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" class="form-control" name="email" value="{{ fournisseur.email }}">
+    </div>
+    <div class="col-12">
+      <label for="adresse" class="form-label">Adresse</label>
+      <textarea class="form-control" name="adresse">{{ fournisseur.adresse }}</textarea>
+    </div>
+    <div class="col-12 text-end">
+      <button type="submit" class="btn btn-success">Enregistrer</button>
+      <a href="{{ url_for('fournisseurs') }}" class="btn btn-secondary">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

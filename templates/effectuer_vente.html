@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Effectuer une vente{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="mb-4">🛒 Effectuer une vente</h2>
+
+  <!-- 🔍 Barre de recherche produit, stock ou description -->
+  <input type="text" id="searchProduit" class="form-control mb-3" placeholder="🔍 Rechercher un produit, une description ou un stock...">
+
+  <form method="POST">
+    <table id="tableProduits" class="table table-bordered table-hover">
+      <thead class="table-light">
+        <tr>
+          <th>Produit</th>
+          <th>Description</th>
+          <th>Prix Unitaire (FCFA)</th>
+          <th>Stock Disponible</th>
+          <th>Quantité à vendre</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for produit in produits %}
+        <tr>
+          <td>{{ produit.nom }}</td>
+          <td>{{ produit.description or "—" }}</td>
+          <td>{{ "{:,.0f}".format(produit.prix_unitaire or 0) }}</td>
+          <td>{{ produit.quantite }}</td>
+          <td>
+            <input type="number"
+                   class="form-control quantite-produit"
+                   name="quantite_{{ produit.id }}"
+                   placeholder="0"
+                   min="0"
+                   max="{{ produit.quantite }}"
+                   data-prix="{{ produit.prix_unitaire or 0 }}">
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label>Nom du client</label>
+        <input type="text" name="nom_client" class="form-control">
+      </div>
+      <div class="col-md-4">
+        <label>Téléphone</label>
+        <input type="text" name="telephone_client" class="form-control">
+      </div>
+      <div class="col-md-4">
+        <label>Montant total</label>
+        <input type="text" id="montant_total_affiche" class="form-control" readonly>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label>Montant payé (FCFA)</label>
+      <input type="number" name="montant_paye" id="montant_paye" class="form-control" required>
+    </div>
+
+    <div class="text-end">
+      <button type="submit" class="btn btn-success">Valider la vente</button>
+      <a href="{{ url_for('index') }}" class="btn btn-secondary">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function calculerTotalEtAffecter() {
+    let total = 0;
+    document.querySelectorAll(".quantite-produit").forEach(input => {
+        const qte = parseInt(input.value) || 0;
+        const prix = parseFloat(input.dataset.prix);
+        total += qte * prix;
+    });
+    document.getElementById("montant_total_affiche").value = total.toLocaleString() + " FCFA";
+    const montantPayeInput = document.getElementById("montant_paye");
+    if (!montantPayeInput.value || parseFloat(montantPayeInput.value) < total) {
+      montantPayeInput.value = total;
+    }
+}
+
+document.querySelectorAll(".quantite-produit").forEach(input => {
+    input.addEventListener("input", calculerTotalEtAffecter);
+});
+
+// 🔍 Recherche par nom, description ou stock
+document.getElementById('searchProduit').addEventListener('keyup', function () {
+    const searchValue = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#tableProduits tbody tr');
+
+    rows.forEach(row => {
+        const nomProduit = row.cells[0].textContent.toLowerCase();
+        const description = row.cells[1].textContent.toLowerCase();
+        const stockDispo = row.cells[3].textContent.toLowerCase();
+
+        if (
+            nomProduit.includes(searchValue) ||
+            description.includes(searchValue) ||
+            stockDispo.includes(searchValue)
+        ) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -3,15 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Créer un compte</title>
+  <title>{{ app_name }} – Créer un compte</title>
+
+  <!-- Bootstrap & Icônes -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet" />
+
   <style>
     body, html {
       height: 100%;
       margin: 0;
       padding: 0;
+      font-family: 'Quicksand', sans-serif;
+      overflow: hidden;
     }
 
     .background-blur {
@@ -20,85 +25,174 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      filter: blur(5px);
+      background: url('{{ url_for('static', filename='fond.jpg') }}') center center / cover no-repeat;
+      filter: blur(6px);
       z-index: -1;
     }
 
-    .container {
-      background-color: rgba(255, 255, 255, 0.1);
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      max-width: 400px;
-      margin-top: 5rem;
-      color: white;
+    .register-container {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+      max-width: 450px;
+      width: 100%;
+      color: #fff;
+    }
+
+    .texte-bienvenue {
+      font-size: 1.1rem;
+      color: #e1f0ff;
+      font-weight: 600;
     }
 
     .form-label {
-      color: white;
+      font-weight: 500;
+    }
+
+    .form-control {
+      border-radius: 8px;
+    }
+
+    .btn-outline-light {
+      border-radius: 30px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline-light:hover {
+      background-color: #ffffff;
+      color: #000;
+    }
+
+    .btn-a-propos {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      border: 1px solid #ffffff88;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(3px);
+      box-shadow: 0 0 5px rgba(255,255,255,0.3);
+    }
+
+    .btn-a-propos:hover {
+      background-color: rgba(255, 255, 255, 0.3);
+      color: #000;
+      border-color: #fff;
+      box-shadow: 0 0 8px rgba(255,255,255,0.6);
+    }
+
+    .small-alert {
+      font-size: 0.9em;
+      color: #ffc107;
+      margin-top: 4px;
+    }
+
+    .link-white:hover {
+      text-decoration: underline;
+      color: #f8f9fa;
     }
   </style>
 </head>
 <body>
 
-<!-- Fond dynamique avec image gérée par Jinja -->
-<div class="background-blur" style="background-image: url('{{ url_for('static', filename='fond.jpg') }}');"></div>
+<!-- Bouton À propos -->
+<div style="position: absolute; top: 20px; right: 30px; z-index: 10;">
+  <a href="{{ url_for('a_propos') }}" class="btn-a-propos">
+    <i class="bi bi-info-circle me-1"></i> À propos
+  </a>
+</div>
+
+<div class="background-blur"></div>
 
 <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
-  <div class="container">
+  <div class="register-container">
 
-  <h2 class="text-center mb-4">Créer un compte</h2>
+    <p class="text-center mb-2 texte-bienvenue">
+      Bienvenue sur <strong style="color: #ffffff;">{{ app_name }}</strong><br>
+      Créez votre compte pour commencer à gérer vos stocks.
+    </p>
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+    <h3 class="text-center mb-4 fw-bold">Créer un compte</h3>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('demande_inscription') }}" id="form-inscription">
+      <div class="mb-3">
+        <label for="nom_utilisateur" class="form-label">Nom d'utilisateur</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input type="text" class="form-control" id="nom_utilisateur" name="nom_utilisateur" required>
         </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+      </div>
 
-  <form method="POST">
-    <div class="mb-3">
-  <label for="nom_utilisateur" class="form-label">Nom d'utilisateur</label>
-  <div class="input-group">
-    <span class="input-group-text"><i class="bi bi-person"></i></span>
-    <input type="text" class="form-control" id="nom_utilisateur" name="nom_utilisateur" placeholder="Nom d'utilisateur" required>
+      <div class="mb-3">
+        <label for="email" class="form-label">Adresse email</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+          <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="mot_de_passe" class="form-label">Mot de passe</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock"></i></span>
+          <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" required>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label for="confirm_password" class="form-label">Confirmer le mot de passe</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+          <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+        </div>
+        <div id="password-alert" class="small-alert d-none">⚠️ Les mots de passe ne correspondent pas.</div>
+      </div>
+
+      <div class="d-grid">
+        <button type="submit" class="btn btn-outline-light btn-lg fw-bold">S'inscrire</button>
+      </div>
+
+      <div class="text-center mt-3">
+        <a href="{{ url_for('login') }}" class="text-white link-white">Déjà un compte ? Se connecter</a>
+      </div>
+    </form>
   </div>
-</div>
-
-  <div class="mb-3">
-  <label for="email" class="form-label">Adresse email</label>
-  <div class="input-group">
-    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-    <input type="email" class="form-control" id="email" name="email" placeholder="exemple@domaine.com" required>
-  </div>
-</div>
-
-
-    <div class="mb-3">
-  <label for="mot_de_passe" class="form-label">Mot de passe</label>
-  <div class="input-group">
-    <span class="input-group-text"><i class="bi bi-lock"></i></span>
-    <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" placeholder="Mot de passe" required>
-  </div>
-</div>
-
-    <div class="d-grid">
-      <button type="submit" class="btn btn-outline-light btn-lg fw-bold">S'inscrire</button>
-
-    </div>
-    <div class="text-center mt-3">
-      <a href="{{ url_for('login') }}" class="text-white">Déjà un compte ? Se connecter</a>
-    </div>
-  </form>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Vérification JS -->
+<script>
+  const form = document.getElementById('form-inscription');
+  const passwordInput = document.getElementById('mot_de_passe');
+  const confirmInput = document.getElementById('confirm_password');
+  const alertBox = document.getElementById('password-alert');
+
+  form.addEventListener('submit', function (e) {
+    if (passwordInput.value !== confirmInput.value) {
+      e.preventDefault();
+      alertBox.classList.remove('d-none');
+    } else {
+      alertBox.classList.add('d-none');
+    }
+  });
+</script>
+
 </body>
 </html>

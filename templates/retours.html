@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Historique des retours{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="mb-4">📦 Historique des retours</h2>
+
+  <a href="{{ url_for('index') }}" class="btn btn-outline-primary mb-3">← Retour à l'accueil</a>
+  <a href="{{ url_for('corbeille_retours') }}" class="btn btn-outline-danger mb-3 float-end">
+    🗑️ Corbeille
+  </a>
+
+  <!-- Formulaire de recherche, filtres et tri -->
+  <form method="GET" class="row g-2 mb-4">
+    <div class="col-md-4">
+      <input type="text" name="recherche" class="form-control" placeholder="Rechercher un produit..." value="{{ recherche }}">
+    </div>
+    <div class="col-md-3">
+      <select name="filtre" class="form-select">
+        <option value="tous" {% if filtre == 'tous' %}selected{% endif %}>Tous les retours</option>
+        <option value="mois" {% if filtre == 'mois' %}selected{% endif %}>Ce mois</option>
+        <option value="aujourdhui" {% if filtre == 'aujourdhui' %}selected{% endif %}>Aujourd'hui</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <select name="tri" class="form-select">
+        <option value="date_desc" {% if tri == 'date_desc' %}selected{% endif %}>Date ↓</option>
+        <option value="date_asc" {% if tri == 'date_asc' %}selected{% endif %}>Date ↑</option>
+        <option value="produit_asc" {% if tri == 'produit_asc' %}selected{% endif %}>Produit A-Z</option>
+        <option value="quantite_desc" {% if tri == 'quantite_desc' %}selected{% endif %}>Quantité ↓</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button class="btn btn-outline-dark w-100" type="submit">
+        <i class="bi bi-filter"></i>
+      </button>
+    </div>
+  </form>
+
+  {% if retours %}
+  <div class="table-responsive">
+    <table class="table table-bordered text-center align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Date</th>
+          <th>Produit</th>
+          <th>Quantité</th>
+          <th>Motif</th>
+          <th>Vente liée</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for retour in retours %}
+        <tr>
+          <td>{{ retour.date_retour.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td>{{ retour.produit.nom }}</td>
+          <td>{{ retour.quantite_retournee }}</td>
+          <td>{{ retour.motif or "-" }}</td>
+          <td>
+            <a href="{{ url_for('voir_recu', recu_id=retour.recu.id) }}" class="btn btn-sm btn-outline-secondary">
+              #{{ retour.recu.reference }}
+            </a>
+          </td>
+          <td>
+            <form method="POST"
+                  action="{{ url_for('supprimer_retour', retour_id=retour.id) }}"
+                  class="form-supprimer-retour d-inline"
+                  data-produit="{{ retour.produit.nom }}">
+              <button type="submit" class="btn btn-danger btn-sm">🗑️ Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p>Aucun retour enregistré pour le moment.</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.querySelectorAll('.form-supprimer-retour').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const produit = this.dataset.produit;
+
+      Swal.fire({
+        title: 'Êtes-vous sûr ?',
+        text: `Le retour du produit "${produit}" sera déplacé dans la corbeille.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

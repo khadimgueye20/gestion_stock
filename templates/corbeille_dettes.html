@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Corbeille des dettes{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="my-4">🗑️ Corbeille des dettes supprimées</h2>
+    <a href="{{ url_for('dettes') }}" class="btn btn-outline-primary mb-3">← Retour à la liste des dettes</a>
+
+    {% if dettes %}
+    <div class="table-responsive">
+        <table class="table table-bordered text-center align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Client</th>
+                    <th>Téléphone</th>
+                    <th>Date</th>
+                    <th>Montant total</th>
+                    <th>Remboursé</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dette in dettes %}
+                <tr>
+                    <td>{{ dette.client_nom }}</td>
+                    <td>{{ dette.client_telephone or "—" }}</td>
+                    <td>{{ dette.date_creation.strftime("%d/%m/%Y") }}</td>
+                    <td>{{ "{:,.0f}".format(dette.montant_total) }} FCFA</td>
+                    <td>{{ "{:,.0f}".format(dette.montant_rembourse) }} FCFA</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('restaurer_dette', dette_id=dette.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-success">Restaurer</button>
+                        </form>
+
+                        <form method="POST" action="{{ url_for('supprimer_definitif_dette', dette_id=dette.id) }}" class="form-supprimer-definitif d-inline" data-nom="{{ dette.client_nom }}">
+                            <button type="submit" class="btn btn-sm btn-danger">❌ Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        Aucune dette supprimée pour le moment.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.querySelectorAll('.form-supprimer-definitif').forEach(form => {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const nom = this.dataset.nom;
+      Swal.fire({
+        title: 'Suppression définitive ?',
+        text: `La dette de "${nom}" sera supprimée définitivement.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit();
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
