@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rapport archive - {{ archive.mois }}</title>
+  <style>
+    body { font-family: DejaVu Sans, sans-serif; margin: 30px; font-size: 12px; }
+    h1 { text-align: center; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #444; padding: 8px; }
+    th { background-color: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <h1>Rapport Archive - {{ archive.mois }}</h1>
+
+  <table>
+    <tr>
+      <th>Chiffre d'affaires</th>
+      <td>{{ archive.chiffre_affaires | round(0) }} FCFA</td>
+    </tr>
+    <tr>
+      <th>Total Achats</th>
+      <td>{{ archive.total_achats | round(0) }} FCFA</td>
+    </tr>
+    <tr>
+      <th>Bénéfice</th>
+      <td>{{ archive.benefice | round(0) }} FCFA</td>
+    </tr>
+    <tr>
+      <th>Marge (%)</th>
+      <td>{{ archive.marge | round(2) }} %</td>
+    </tr>
+    <tr>
+      <th>Nombre de ventes</th>
+      <td>{{ archive.nb_ventes }}</td>
+    </tr>
+    <tr>
+      <th>Date d’enregistrement</th>
+      <td>{{ archive.date_enregistrement.strftime('%d/%m/%Y') }}</td>
+    </tr>
+  </table>
+</body>
+</html>

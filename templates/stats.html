@@ -10,6 +10,12 @@
   <a href="{{ url_for('rapport_pdf') }}" class="btn btn-outline-secondary">
     📄 Télécharger le rapport PDF
   </a>
+  <a href="{{ url_for('archiver_stats') }}" class="btn btn-outline-primary">
+    💾 Archiver ce mois
+   </a>
+   <a href="{{ url_for('archives') }}" class="btn btn-outline-dark">
+    📂 Voir les archives
+  </a>
 </div>
 
 
@@ -36,6 +42,39 @@
         </div>
       </div>
     </div>
+
+<!-- Total des prix d'achat -->
+<div class="col-md-4">
+  <div class="card shadow-lg rounded-4 border-0 bg-secondary text-white">
+    <div class="card-body text-center">
+      <i class="bi bi-basket3-fill display-4 mb-3"></i>
+      <h5 class="card-title">Coût d'achat des produits vendus</h5>
+      <p class="fs-3 fw-bold">{{ total_achats | round(0) }} F CFA</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- Bénéfice -->
+<div class="col-md-4">
+  <div class="card shadow-lg rounded-4 border-0 bg-info text-white">
+    <div class="card-body text-center">
+      <i class="bi bi-graph-up-arrow display-4 mb-3"></i>
+      <h5 class="card-title">Bénéfice</h5>
+      <p class="fs-3 fw-bold">{{ benefice_total | round(0) }} F CFA</p>
+    </div>
+  </div>
+</div>
+
+<div class="col-md-4">
+  <div class="card shadow-lg rounded-4 border-0 bg-secondary text-white">
+    <div class="card-body text-center">
+      <i class="bi bi-percent display-4 mb-3"></i>
+      <h5 class="card-title">Marge brute</h5>
+      <p class="fs-3 fw-bold">{{ marge_pourcentage | round(2) }} %</p>
+    </div>
+  </div>
+</div>
 
     <!-- Stock faible -->
     {% if stock_faible %}

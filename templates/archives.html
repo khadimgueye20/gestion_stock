@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">📂 Archives des mois précédents</h2>
+
+  <!-- Bouton retour et corbeille -->
+  <a href="{{ url_for('stats') }}" class="btn btn-outline-primary mb-3">← Retour aux Stats</a>
+  
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle text-center">
+      <thead class="table-light">
+        <tr>
+          <th>Mois</th>
+          <th>Chiffre d'affaires</th>
+          <th>Total Achats</th>
+          <th>Bénéfice</th>
+          <th>Marge (%)</th>
+          <th>Nombre de ventes</th>
+          <th>Date d’enregistrement</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in archives %}
+        <tr>
+          <td>{{ a.mois }}</td>
+          <td>{{ a.chiffre_affaires | round(0) }} FCFA</td>
+          <td>{{ a.total_achats | round(0) }} FCFA</td>
+          <td>{{ a.benefice | round(0) }} FCFA</td>
+          <td>{{ a.marge | round(2) }}%</td>
+          <td>{{ a.nb_ventes }}</td>
+          <td>{{ a.date_enregistrement.strftime('%d/%m/%Y') }}</td>
+          <td>
+            <!-- Télécharger PDF -->
+            <a href="{{ url_for('telecharger_archive_pdf', archive_id=a.id) }}"
+               class="btn btn-sm btn-outline-primary me-1" title="Télécharger PDF">
+              📄
+            </a>
+
+            <!-- Supprimer avec SweetAlert -->
+            <form method="POST"
+                  action="{{ url_for('supprimer_archive', archive_id=a.id) }}"
+                  class="form-supprimer-archive d-inline"
+                  data-mois="{{ a.mois }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">🗑️</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.form-supprimer-archive').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault(); // empêche la soumission immédiate
+      const mois = this.dataset.mois;
+
+      Swal.fire({
+        title: 'Êtes-vous sûr ?',
+        text: `L'archive du mois "${mois}" sera supprimée définitivement.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit(); // on soumet le formulaire si confirmé
+        }
+      });
+    });
+  });
+});
+</script>
+{% endblock %}

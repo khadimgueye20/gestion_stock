@@ -76,4 +76,35 @@ document.getElementById('recherche').addEventListener('input', function () {
     });
 });
 </script>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.form-supprimer-produit').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const nom = this.dataset.nom;
+
+      Swal.fire({
+        title: 'Êtes-vous sûr ?',
+        text: `Le produit "${nom}" sera définitivement supprimé.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.submit();
+        }
+      });
+    });
+  });
+});
+</script>
+{% endblock %}
+
 {% endblock %}

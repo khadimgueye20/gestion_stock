@@ -137,9 +137,11 @@ class Recu(db.Model):
     telephone_client = db.Column(db.String(20), nullable=True)
     montant_paye = db.Column(db.Float, default=0)
     monnaie_rendue = db.Column(db.Float, default=0)
+    mode_paiement = db.Column(db.String(50), nullable=True)  # ✅ Nouveau champ
     dette = db.relationship('Dette', backref='recu', uselist=False)
-    
+
     utilisateur = db.relationship('Utilisateur', backref=db.backref('recus', lazy=True))
+
 
 # Modèle Ligne de vente
 class LigneVente(db.Model):
@@ -223,6 +225,16 @@ class Remboursement(db.Model):
 
   
 
+class ArchiveStat(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    utilisateur_id = db.Column(db.Integer, db.ForeignKey('utilisateur.id'), nullable=False)
+    mois = db.Column(db.String(20), nullable=False)  # ex: "Juillet 2025"
+    chiffre_affaires = db.Column(db.Float, nullable=False, default=0)
+    total_achats = db.Column(db.Float, nullable=False, default=0)
+    benefice = db.Column(db.Float, nullable=False, default=0)
+    marge = db.Column(db.Float, nullable=False, default=0)
+    nb_ventes = db.Column(db.Integer, nullable=False, default=0)
+    date_enregistrement = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 
@@ -709,12 +721,14 @@ def renvoyer_code_reset(user_id):
 @app.route("/effectuer_vente", methods=["GET", "POST"])
 @login_required
 def effectuer_vente():
+    # 🔹 Récupérer tous les produits disponibles pour l'utilisateur connecté
     produits = Produit.query.filter_by(utilisateur_id=current_user.id, supprime=False).all()
 
     if request.method == "POST":
         ventes = []
         montant_total = 0.0
 
+        # 🔹 Infos client
         nom_client = request.form.get("nom_client") or "Client"
         telephone_client = request.form.get("telephone_client") or ""
         try:
@@ -722,22 +736,26 @@ def effectuer_vente():
         except ValueError:
             montant_paye = 0.0
 
-        # 🔄 Analyse des produits sélectionnés
+        # 🔹 Récupération du mode de paiement
+        mode_paiement = request.form.get("mode_paiement")
+
+        # ✅ Analyse des produits vendus
         for produit in produits:
             qte_str = request.form.get(f"quantite_{produit.id}")
             if qte_str and qte_str.isdigit():
                 quantite = int(qte_str)
                 if 0 < quantite <= produit.quantite:
                     produit.quantite -= quantite
-                    montant = quantite * (produit.prix_vente or 0)  # ✅ utilise prix_vente
+                    montant = quantite * (produit.prix_vente or 0)
                     montant_total += montant
-                    ventes.append((produit.id, quantite, produit.prix_vente))  # ✅ prix_vente
+                    ventes.append((produit.id, quantite, produit.prix_vente))
 
+        # ❌ Aucun produit sélectionné
         if not ventes:
-            flash("Aucun produit sélectionné pour la vente.", "warning")
+            flash("⚠️ Aucun produit sélectionné pour la vente.", "warning")
             return redirect(url_for("effectuer_vente"))
 
-        # ✅ Créer le reçu
+        # ✅ Création du reçu
         reference = generer_reference_recu()
         recu = Recu(
             reference=reference,
@@ -747,11 +765,12 @@ def effectuer_vente():
             monnaie_rendue=max(0, montant_paye - montant_total),
             nom_client=nom_client,
             telephone_client=telephone_client,
+            mode_paiement=mode_paiement  # 🔹 Ajout du mode de paiement
         )
         db.session.add(recu)
-        db.session.flush()  # pour avoir recu.id
+        db.session.flush()  # Permet d’obtenir recu.id avant commit
 
-        # ✅ Lignes de vente
+        # ✅ Enregistrement des lignes de vente
         for prod_id, quantite, prix_unitaire in ventes:
             ligne = LigneVente(
                 recu_id=recu.id,
@@ -761,7 +780,7 @@ def effectuer_vente():
             )
             db.session.add(ligne)
 
-        # ✅ Enregistrer une dette si paiement partiel
+        # ✅ Si paiement partiel → enregistrement d’une dette
         if montant_paye < montant_total:
             nouvelle_dette = Dette(
                 client_nom=nom_client,
@@ -773,10 +792,14 @@ def effectuer_vente():
             )
             db.session.add(nouvelle_dette)
 
+        # ✅ Validation en base
         db.session.commit()
         flash(f"✅ Vente enregistrée avec reçu #{recu.reference}.", "success")
+
+        # 🔹 Rediriger vers la page du reçu
         return redirect(url_for("voir_recu", recu_id=recu.id))
 
+    # Si méthode GET → Afficher la page
     return render_template("effectuer_vente.html", produits=produits)
 
 
@@ -854,7 +877,6 @@ def recu_pdf(recu_id):
 
     result.seek(0)
     return send_file(result, download_name=f"recu_{recu.reference}.pdf", as_attachment=True)
-
 
 
 
@@ -1108,7 +1130,7 @@ def stats():
     current_month = now.month
     current_year = now.year
 
-    # Produits les plus vendus du mois (TOP 4)
+    # Produits les plus vendus du mois
     produits_vendus = db.session.query(
         Produit.nom,
         func.sum(LigneVente.quantite).label('total_vendu')
@@ -1123,14 +1145,97 @@ def stats():
      .order_by(func.sum(LigneVente.quantite).desc())\
      .limit(4).all()
 
-    # Produits à stock faible (quantité < 2)
+    # Stock faible
     stock_faible = Produit.query.filter(
         Produit.utilisateur_id == utilisateur_id,
         Produit.quantite < 2,
         Produit.supprime == False
     ).all()
 
-    # Nombre de ventes = nombre de reçus du mois
+    # Nombre de ventes
+    nb_ventes = db.session.query(func.count(Recu.id))\
+        .filter(
+            Recu.utilisateur_id == utilisateur_id,
+            extract('month', Recu.date_creation) == current_month,
+            extract('year', Recu.date_creation) == current_year
+        ).scalar() or 0
+
+    # Chiffre d'affaires
+    total_ventes = db.session.query(
+        func.sum(LigneVente.quantite * LigneVente.prix_unitaire)
+    ).join(Recu, LigneVente.recu_id == Recu.id)\
+     .filter(
+         Recu.utilisateur_id == utilisateur_id,
+         extract('month', Recu.date_creation) == current_month,
+         extract('year', Recu.date_creation) == current_year
+     ).scalar() or 0
+
+    # Coût d’achat total
+    prix_achat_total = db.session.query(
+        func.sum(LigneVente.quantite * Produit.prix_achat)
+    ).join(Produit, LigneVente.produit_id == Produit.id)\
+     .join(Recu, LigneVente.recu_id == Recu.id)\
+     .filter(
+         Recu.utilisateur_id == utilisateur_id,
+         extract('month', Recu.date_creation) == current_month,
+         extract('year', Recu.date_creation) == current_year
+     ).scalar() or 0
+
+    # Bénéfice = ventes - achats
+    benefice_total = total_ventes - prix_achat_total
+
+    # Marge = bénéfice / chiffre d’affaires * 100
+    marge_pourcentage = 0
+    if total_ventes > 0:
+        marge_pourcentage = (benefice_total / total_ventes) * 100
+
+    # Nom du mois
+    mois_actuel = now.strftime("%B")
+
+    return render_template(
+    "stats.html",
+    produits_vendus=produits_vendus,
+    stock_faible=stock_faible,
+    nb_ventes=nb_ventes,
+    total_ventes=total_ventes,
+    total_achats=prix_achat_total,   # <--- ajoute cet alias
+    benefice_total=benefice_total,
+    marge_pourcentage=marge_pourcentage,
+    mois=mois_actuel
+)
+
+
+@app.route("/rapport_pdf")
+@login_required
+def rapport_pdf():
+    utilisateur_id = current_user.id
+    now = datetime.now()
+    current_month = now.month
+    current_year = now.year
+
+    # Produits les plus vendus
+    produits_vendus = db.session.query(
+        Produit.nom,
+        func.sum(LigneVente.quantite).label('total_vendu')
+    ).join(Produit, LigneVente.produit_id == Produit.id)\
+     .join(Recu, LigneVente.recu_id == Recu.id)\
+     .filter(
+         Recu.utilisateur_id == utilisateur_id,
+         extract('month', Recu.date_creation) == current_month,
+         extract('year', Recu.date_creation) == current_year
+     )\
+     .group_by(Produit.nom)\
+     .order_by(func.sum(LigneVente.quantite).desc())\
+     .limit(4).all()
+
+    # Stock faible
+    stock_faible = Produit.query.filter(
+        Produit.utilisateur_id == utilisateur_id,
+        Produit.supprime == False,
+        Produit.quantite < 2
+    ).all()
+
+    # Nombre de ventes
     nb_ventes = db.session.query(func.count(Recu.id))\
         .filter(
             Recu.utilisateur_id == utilisateur_id,
@@ -1148,73 +1253,40 @@ def stats():
          extract('year', Recu.date_creation) == current_year
      ).scalar() or 0
 
-    # Nom du mois en français
-    mois_actuel = now.strftime("%B")  # dépend de locale
-
-    return render_template("stats.html",
-                           produits_vendus=produits_vendus,
-                           stock_faible=stock_faible,
-                           nb_ventes=nb_ventes,
-                           total_ventes=total_ventes,
-                           mois=mois_actuel)
-
-
-@app.route("/rapport_pdf")
-@login_required
-def rapport_pdf():
-    utilisateur_id = current_user.id
-    now = datetime.now()
-    current_month = now.month
-    current_year = now.year
-
-    # Statistiques
-    produits_vendus = db.session.query(
-        Produit.nom,
-        func.sum(LigneVente.quantite).label('total_vendu')
+    # Total prix d'achat
+    prix_achat_total = db.session.query(
+        func.sum(LigneVente.quantite * Produit.prix_achat)
     ).join(Produit, LigneVente.produit_id == Produit.id)\
      .join(Recu, LigneVente.recu_id == Recu.id)\
      .filter(
          Recu.utilisateur_id == utilisateur_id,
          extract('month', Recu.date_creation) == current_month,
          extract('year', Recu.date_creation) == current_year
-     )\
-     .group_by(Produit.nom)\
-     .order_by(func.sum(LigneVente.quantite).desc())\
-     .limit(4).all()
-
-    stock_faible = Produit.query.filter(
-        Produit.utilisateur_id == utilisateur_id,
-        Produit.supprime == False,
-        Produit.quantite < 2
-    ).all()
-
-    nb_ventes = db.session.query(func.count(Recu.id))\
-        .filter(
-            Recu.utilisateur_id == utilisateur_id,
-            extract('month', Recu.date_creation) == current_month,
-            extract('year', Recu.date_creation) == current_year
-        ).scalar()
-
-    total_ventes = db.session.query(
-        func.sum(LigneVente.quantite * LigneVente.prix_unitaire)
-    ).join(Recu, LigneVente.recu_id == Recu.id)\
-     .filter(
-         Recu.utilisateur_id == utilisateur_id,
-         extract('month', Recu.date_creation) == current_month,
-         extract('year', Recu.date_creation) == current_year
      ).scalar() or 0
 
-    # Nom du mois
+    # Bénéfice
+    benefice_total = total_ventes - prix_achat_total
+
+    # Marge %
+    marge_pourcentage = 0
+    if total_ventes > 0:
+        marge_pourcentage = (benefice_total / total_ventes) * 100
+
     mois_actuel = now.strftime("%B")
 
-    # HTML vers PDF
-    rendered = render_template("rapport_pdf.html",
-                               produits_vendus=produits_vendus,
-                               stock_faible=stock_faible,
-                               nb_ventes=nb_ventes,
-                               total_ventes=total_ventes,
-                               mois=mois_actuel,
-                               now=now)
+    # Passer les nouvelles variables au template
+    rendered = render_template(
+        "rapport_pdf.html",
+        produits_vendus=produits_vendus,
+        stock_faible=stock_faible,
+        nb_ventes=nb_ventes,
+        total_ventes=total_ventes,
+        prix_achat_total=prix_achat_total,
+        benefice_total=benefice_total,
+        marge_pourcentage=marge_pourcentage,
+        mois=mois_actuel,
+        now=now
+    )
 
     pdf = BytesIO()
     pisa.CreatePDF(BytesIO(rendered.encode("utf-8")), dest=pdf)
@@ -1223,6 +1295,7 @@ def rapport_pdf():
     response.headers["Content-Type"] = "application/pdf"
     response.headers["Content-Disposition"] = f"inline; filename=rapport_{mois_actuel}.pdf"
     return response
+
 
 @app.route("/generer_stats_mensuelles")
 @login_required
@@ -1617,15 +1690,116 @@ def recu_ticket(recu_id):
     return render_template('ticket_thermique.html', recu=recu, lignes=lignes)
 
 
+@app.route("/archiver_stats")
+@login_required
+def archiver_stats():
+    now = datetime.now()
+    mois_actuel = now.strftime("%B %Y")
+    
+    # Recalculer les stats du mois actuel
+    utilisateur_id = current_user.id
+    chiffre_affaires = db.session.query(
+        func.sum(LigneVente.quantite * LigneVente.prix_unitaire)
+    ).join(Recu, LigneVente.recu_id == Recu.id)\
+     .filter(
+         Recu.utilisateur_id == utilisateur_id,
+         extract('month', Recu.date_creation) == now.month,
+         extract('year', Recu.date_creation) == now.year
+     ).scalar() or 0
+    
+    total_achats = db.session.query(
+        func.sum(LigneVente.quantite * Produit.prix_achat)
+    ).join(Produit, LigneVente.produit_id == Produit.id)\
+     .join(Recu, LigneVente.recu_id == Recu.id)\
+     .filter(
+         Recu.utilisateur_id == utilisateur_id,
+         extract('month', Recu.date_creation) == now.month,
+         extract('year', Recu.date_creation) == now.year
+     ).scalar() or 0
+    
+    benefice = chiffre_affaires - total_achats
+    marge = (benefice / chiffre_affaires * 100) if chiffre_affaires > 0 else 0
+    
+    nb_ventes = db.session.query(func.count(Recu.id)).filter(
+        Recu.utilisateur_id == utilisateur_id,
+        extract('month', Recu.date_creation) == now.month,
+        extract('year', Recu.date_creation) == now.year
+    ).scalar()
+    
+    # Vérifier si déjà archivé
+    deja = ArchiveStat.query.filter_by(utilisateur_id=current_user.id, mois=mois_actuel).first()
+    if deja:
+        flash(f"❌ Les stats de {mois_actuel} sont déjà archivées.", "warning")
+        return redirect(url_for("stats"))
+
+    # Créer une nouvelle archive
+    archive = ArchiveStat(
+        utilisateur_id=current_user.id,
+        mois=mois_actuel,
+        chiffre_affaires=chiffre_affaires,
+        total_achats=total_achats,
+        benefice=benefice,
+        marge=marge,
+        nb_ventes=nb_ventes
+    )
+    db.session.add(archive)
+    db.session.commit()
+    
+    flash(f"✅ Stats de {mois_actuel} archivées avec succès !", "success")
+    return redirect(url_for("archives"))
+
+
+@app.route("/archives")
+@login_required
+def archives():
+    archives = ArchiveStat.query.filter_by(utilisateur_id=current_user.id)\
+                .order_by(ArchiveStat.date_enregistrement.desc()).all()
+    return render_template("archives.html", archives=archives)
+
+# Route pour télécharger le PDF d'une archive spécifique
+@app.route("/archives/<int:archive_id>/pdf")
+@login_required
+def telecharger_archive_pdf(archive_id):
+    archive = ArchiveStat.query.filter_by(id=archive_id, utilisateur_id=current_user.id).first_or_404()
+
+    # Générer un PDF simple basé sur cette archive (exemple minimal)
+    rendered = render_template("rapport_archive_pdf.html", archive=archive)
+    pdf = BytesIO()
+    pisa.CreatePDF(BytesIO(rendered.encode("utf-8")), dest=pdf)
+    response = make_response(pdf.getvalue())
+    response.headers["Content-Type"] = "application/pdf"
+    response.headers["Content-Disposition"] = f"inline; filename=rapport_archive_{archive.mois}.pdf"
+    return response
+
+# Route pour supprimer une archive
+@app.route("/archives/<int:archive_id>/supprimer", methods=["POST"])
+@login_required
+def supprimer_archive(archive_id):
+    archive = ArchiveStat.query.filter_by(id=archive_id, utilisateur_id=current_user.id).first_or_404()
+    db.session.delete(archive)
+    db.session.commit()
+    flash(f"Archive {archive.mois} supprimée avec succès.", "success")
+    return redirect(url_for("archives"))
+
+
 from flask_migrate import upgrade
 
+from flask_migrate import upgrade
+from flask_login import login_required, current_user
+
 @app.route("/run-migration")
+@login_required  # 🔒 éviter qu’un inconnu l’appelle
 def run_migration():
+    # 🔒 Vérifier que seul un administrateur ou ton compte peut y accéder
+    if current_user.email != "tonemail@exemple.com":
+        return "⛔ Accès interdit", 403
+
     try:
         upgrade()
         return "✅ Migration effectuée avec succès sur Render !"
     except Exception as e:
         return f"❌ Erreur lors de la migration : {e}", 500
+
 
 
 # Lancement de l'application

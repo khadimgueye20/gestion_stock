@@ -56,9 +56,20 @@
       </div>
     </div>
 
-    <div class="mb-3">
-      <label>Montant payé (FCFA)</label>
-      <input type="number" name="montant_paye" id="montant_paye" class="form-control" required>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label>Montant payé (FCFA)</label>
+        <input type="number" name="montant_paye" id="montant_paye" class="form-control" required>
+      </div>
+      <div class="col-md-6">
+        <label>Mode de paiement</label>
+        <select name="mode_paiement" class="form-select" required>
+          <option value="" disabled selected>-- Choisir un mode de paiement --</option>
+          <option value="Wave">Wave</option>
+          <option value="Orange Money">Orange Money</option>
+          <option value="Espèce">Espèce</option>
+        </select>
+      </div>
     </div>
 
     <div class="text-end">

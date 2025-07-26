@@ -23,10 +23,23 @@
       <td>{{ produit.prix_vente }}</td>
       <td>{{ produit.fournisseur.nom if produit.fournisseur else '' }}</td>
       <td>
-        <a href="{{ url_for('modifier_produit', id=produit.id) }}" class="btn btn-sm btn-warning">✏️</a>
-        <a href="{{ url_for('supprimer_produit', id=produit.id) }}" class="btn btn-sm btn-danger"
-           onclick="return confirm('Supprimer ce produit ?');">🗑️</a>
-      </td>
+  <!-- Conteneur flex ou inline -->
+  <div class="d-inline-flex gap-2">
+    <!-- Bouton modifier -->
+    <a href="{{ url_for('modifier_produit', id=produit.id) }}" class="btn btn-warning btn-sm">
+      ✏️
+    </a>
+
+    <!-- Formulaire supprimer avec data-nom -->
+    <form method="POST"
+          action="{{ url_for('supprimer_produit', id=produit.id) }}"
+          class="form-supprimer-produit d-inline"
+          data-nom="{{ produit.nom }}">
+      <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+    </form>
+  </div>
+</td>
+
     </tr>
     {% endfor %}
   </tbody>

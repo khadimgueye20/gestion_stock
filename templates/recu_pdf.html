@@ -63,6 +63,7 @@
 <p><strong>Date :</strong> {{ recu.date_creation.strftime('%d/%m/%Y %H:%M:%S') }}</p>
 <p><strong>Montant total :</strong> {{ "{:,.0f}".format(recu.montant_total) }} FCFA</p>
 <p><strong>Montant payé :</strong> {{ "{:,.0f}".format(recu.montant_paye) }} FCFA</p>
+<p><strong>Mode de paiement :</strong> {{ recu.mode_paiement or "—" }}</p>
 
 {% if recu.montant_paye < recu.montant_total %}
   <p><strong>Restant (dette) :</strong> {{ "{:,.0f}".format(recu.montant_total - recu.montant_paye) }} FCFA</p>

@@ -37,28 +37,30 @@
     <table class="table table-bordered text-center align-middle">
       <thead class="table-light">
         <tr>
-          <th>Référence</th>
-          <th>Date</th>
-          <th>Montant total</th>
-          <th>Infos client</th>
-          <th>Actions</th>
+           <th>Référence</th>
+           <th>Date</th>
+           <th>Montant total</th>
+           <th>Mode de paiement</th> 
+           <th>Infos client</th>
+           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        {% for recu in recus %}
-        <tr>
-          <td>{{ recu.reference }}</td>
-          <td>{{ recu.date_creation.strftime('%d/%m/%Y %H:%M') }}</td>
-          <td>{{ recu.montant_total }} F</td>
-          <td>
-            {% if recu.nom_client %}
-              {{ recu.nom_client }}<br>
-              <small>{{ recu.telephone_client }}</small>
-            {% else %}
-              <em>Non renseigné</em>
-            {% endif %}
-          </td>
-          <td>
+  {% for recu in recus %}
+  <tr>
+    <td>{{ recu.reference }}</td>
+    <td>{{ recu.date_creation.strftime('%d/%m/%Y %H:%M') }}</td>
+    <td>{{ recu.montant_total }} F</td>
+    <td>{{ recu.mode_paiement or "—" }}</td> <!-- ✅ cellule ajoutée -->
+    <td>
+      {% if recu.nom_client %}
+        {{ recu.nom_client }}<br>
+        <small>{{ recu.telephone_client }}</small>
+      {% else %}
+        <em>Non renseigné</em>
+      {% endif %}
+    </td>
+    <td>
             <a href="{{ url_for('voir_recu', recu_id=recu.id) }}" class="btn btn-primary btn-sm">Voir</a>
             <a href="{{ url_for('recu_pdf', recu_id=recu.id) }}" class="btn btn-secondary btn-sm">PDF</a>
             <a href="{{ url_for('modifier_recu', recu_id=recu.id) }}" class="btn btn-warning btn-sm">Modifier</a>
