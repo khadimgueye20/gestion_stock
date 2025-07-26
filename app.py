@@ -36,10 +36,10 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configuration de la base de données PostgreSQL
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:touba202@localhost:5432/gestion_stock?sslmode=require'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL") or "postgresql://postgres:touba202@localhost:5432/gestion_stock?sslmode=require"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = "votre_cle_secrete"
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL")
+app.secret_key = os.getenv("SECRET_KEY") or "une_cle_secrete_tres_forte_et_unique"
+
 
 # Configuration pour Flask-Mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -1594,6 +1594,15 @@ def recu_ticket(recu_id):
     return render_template('ticket_thermique.html', recu=recu, lignes=lignes)
 
 
+from flask_migrate import upgrade
+
+@app.route("/run-migration")
+def run_migration():
+    try:
+        upgrade()
+        return "✅ Migration effectuée avec succès sur Render !"
+    except Exception as e:
+        return f"❌ Erreur lors de la migration : {e}", 500
 
 
 # Lancement de l'application
