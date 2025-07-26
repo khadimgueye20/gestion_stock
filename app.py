@@ -98,6 +98,9 @@ class Produit(db.Model):
     utilisateur_id = db.Column(db.Integer, db.ForeignKey('utilisateur.id'), nullable=False)
     supprime = db.Column(db.Boolean, default=False)
     fournisseur_id = db.Column(db.Integer, db.ForeignKey('fournisseur.id'))
+    prix_achat = db.Column(db.Float, nullable=False, default=0)
+    prix_vente = db.Column(db.Float, nullable=False, default=0)
+
     
 # Modèle Vente
 class Vente(db.Model):
@@ -263,25 +266,27 @@ def index():
 @app.route('/ajouter', methods=['POST'])
 @login_required
 def ajouter():
-    nom = request.form['nom']
-    description = request.form['description']
-    quantite = int(request.form['quantite'])
-    prix_unitaire = float(request.form['prix_unitaire'])
-    fournisseur_id = request.form.get('fournisseur_id') or None
+    nom = request.form.get('nom')
+    description = request.form.get('description')
+    quantite = int(request.form.get('quantite'))
+    prix_achat = float(request.form.get('prix_achat'))
+    prix_vente = float(request.form.get('prix_vente'))
+    fournisseur_id = request.form.get('fournisseur_id')
 
     produit = Produit(
         nom=nom,
         description=description,
         quantite=quantite,
-        stock=quantite,
-        prix_unitaire=prix_unitaire,
-        utilisateur_id=current_user.id,
-        fournisseur_id=fournisseur_id
+        prix_achat=prix_achat,
+        prix_vente=prix_vente,
+        fournisseur_id=fournisseur_id,
+        utilisateur_id=current_user.id
     )
     db.session.add(produit)
     db.session.commit()
-    flash("Produit ajouté avec succès", "success")
+    flash("✅ Produit ajouté avec succès.", "success")
     return redirect(url_for('index'))
+
 
 
 # Route pour supprimer un produit
@@ -312,47 +317,64 @@ def supprimer_vente(id):
 def modifier_produit(id):
     produit = Produit.query.get_or_404(id)
 
+    # ✅ Vérification de l’utilisateur
     if produit.utilisateur_id != current_user.id:
         abort(403)
 
+    # ✅ Valeurs avant modification
     ancien = {
         "nom": produit.nom,
         "description": produit.description,
         "quantite": produit.quantite,
-        "prix": produit.prix_unitaire
+        "prix_achat": produit.prix_achat,
+        "prix_vente": produit.prix_vente,
     }
 
     if request.method == 'POST':
+        # ✅ Récupération des nouvelles valeurs
         nouveau_nom = request.form['nom']
         nouvelle_description = request.form['description']
-        prix_str = request.form['prix_unitaire'].replace(',', '.')
-        nouveau_prix = float(prix_str)
         nouvelle_quantite = int(request.form['quantite'])
 
+        # On remplace la virgule par un point si besoin
+        prix_achat_str = request.form['prix_achat'].replace(',', '.')
+        prix_vente_str = request.form['prix_vente'].replace(',', '.')
+        nouveau_prix_achat = float(prix_achat_str)
+        nouveau_prix_vente = float(prix_vente_str)
+
+        # ✅ Détection des changements
         modifications = []
         if ancien["nom"] != nouveau_nom:
-            modifications.append(f'nom changé de "{ancien["nom"]}" à "{nouveau_nom}"')
+            modifications.append(f'Nom : "{ancien["nom"]}" → "{nouveau_nom}"')
         if ancien["description"] != nouvelle_description:
-            modifications.append(f'description changée de "{ancien["description"]}" à "{nouvelle_description}"')
-        if ancien["prix"] != nouveau_prix:
-            modifications.append(f'prix unitaire changé de {ancien["prix"]} à {nouveau_prix}')
+            modifications.append(f'Description : "{ancien["description"]}" → "{nouvelle_description}"')
         if ancien["quantite"] != nouvelle_quantite:
-            modifications.append(f'quantité changée de {ancien["quantite"]} à {nouvelle_quantite}')
+            modifications.append(f'Quantité : {ancien["quantite"]} → {nouvelle_quantite}')
+        if ancien["prix_achat"] != nouveau_prix_achat:
+            modifications.append(f'Prix d\'achat : {ancien["prix_achat"]} → {nouveau_prix_achat}')
+        if ancien["prix_vente"] != nouveau_prix_vente:
+            modifications.append(f'Prix de vente : {ancien["prix_vente"]} → {nouveau_prix_vente}')
 
-        # ✅ Si aucune modification détectée
+        # ✅ Si aucune modification
         if not modifications:
             flash("Aucune modification détectée.", "info")
             return redirect(url_for('index'))
 
-        # Appliquer les modifications
+        # ✅ Appliquer les modifications
         produit.nom = nouveau_nom
         produit.description = nouvelle_description
-        produit.prix_unitaire = nouveau_prix
         produit.quantite = nouvelle_quantite
+        produit.prix_achat = nouveau_prix_achat
+        produit.prix_vente = nouveau_prix_vente
         db.session.commit()
 
-        message = f'Le produit "{ancien["nom"]}", "{ancien["description"]}" a été modifié avec les changements suivants : ' + "; ".join(modifications) + "."
+        # ✅ Message récapitulatif
+        message = (
+            f'Le produit "{ancien["nom"]}" a été modifié avec les changements suivants : '
+            + "; ".join(modifications) + "."
+        )
 
+        # ✅ Envoi d’un mail de notification (si email dispo)
         if current_user.email:
             try:
                 msg = Message(
@@ -365,9 +387,11 @@ def modifier_produit(id):
                 print("Erreur lors de l'envoi du mail :", e)
                 flash("Erreur lors de l'envoi de l'e-mail de notification.", "warning")
 
+        flash("✅ Produit modifié avec succès.", "success")
         return redirect(url_for('index'))
 
     return render_template('modifier.html', produit=produit)
+
 
 
 # Routes de connexion / déconnexion
@@ -691,7 +715,6 @@ def effectuer_vente():
         ventes = []
         montant_total = 0.0
 
-        # Champs client et paiement
         nom_client = request.form.get("nom_client") or "Client"
         telephone_client = request.form.get("telephone_client") or ""
         try:
@@ -699,22 +722,22 @@ def effectuer_vente():
         except ValueError:
             montant_paye = 0.0
 
-        # Analyse des quantités de produits sélectionnés
+        # 🔄 Analyse des produits sélectionnés
         for produit in produits:
             qte_str = request.form.get(f"quantite_{produit.id}")
             if qte_str and qte_str.isdigit():
                 quantite = int(qte_str)
                 if 0 < quantite <= produit.quantite:
                     produit.quantite -= quantite
-                    montant = quantite * (produit.prix_unitaire or 0)
+                    montant = quantite * (produit.prix_vente or 0)  # ✅ utilise prix_vente
                     montant_total += montant
-                    ventes.append((produit.id, quantite, produit.prix_unitaire))
+                    ventes.append((produit.id, quantite, produit.prix_vente))  # ✅ prix_vente
 
         if not ventes:
             flash("Aucun produit sélectionné pour la vente.", "warning")
             return redirect(url_for("effectuer_vente"))
 
-        # Création du reçu
+        # ✅ Créer le reçu
         reference = generer_reference_recu()
         recu = Recu(
             reference=reference,
@@ -726,9 +749,9 @@ def effectuer_vente():
             telephone_client=telephone_client,
         )
         db.session.add(recu)
-        db.session.flush()  # Pour récupérer recu.id
+        db.session.flush()  # pour avoir recu.id
 
-        # Lignes de vente
+        # ✅ Lignes de vente
         for prod_id, quantite, prix_unitaire in ventes:
             ligne = LigneVente(
                 recu_id=recu.id,
@@ -738,20 +761,20 @@ def effectuer_vente():
             )
             db.session.add(ligne)
 
-        # Enregistrer une dette si paiement partiel
+        # ✅ Enregistrer une dette si paiement partiel
         if montant_paye < montant_total:
             nouvelle_dette = Dette(
                 client_nom=nom_client,
                 client_telephone=telephone_client,
                 montant_total=montant_total,
                 montant_rembourse=montant_paye,
-                recu_id=recu.id,  # ✅ pour lien vers le reçu
+                recu_id=recu.id,
                 utilisateur_id=current_user.id
             )
             db.session.add(nouvelle_dette)
 
         db.session.commit()
-        flash(f"Vente enregistrée avec reçu #{recu.reference}.", "success")
+        flash(f"✅ Vente enregistrée avec reçu #{recu.reference}.", "success")
         return redirect(url_for("voir_recu", recu_id=recu.id))
 
     return render_template("effectuer_vente.html", produits=produits)

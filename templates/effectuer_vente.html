@@ -15,7 +15,7 @@
         <tr>
           <th>Produit</th>
           <th>Description</th>
-          <th>Prix Unitaire (FCFA)</th>
+          <th>Prix de vente (FCFA)</th>
           <th>Stock Disponible</th>
           <th>Quantité à vendre</th>
         </tr>
@@ -25,7 +25,7 @@
         <tr>
           <td>{{ produit.nom }}</td>
           <td>{{ produit.description or "—" }}</td>
-          <td>{{ "{:,.0f}".format(produit.prix_unitaire or 0) }}</td>
+          <td>{{ "{:,.0f}".format(produit.prix_vente or 0) }}</td>
           <td>{{ produit.quantite }}</td>
           <td>
             <input type="number"
@@ -34,7 +34,7 @@
                    placeholder="0"
                    min="0"
                    max="{{ produit.quantite }}"
-                   data-prix="{{ produit.prix_unitaire or 0 }}">
+                   data-prix="{{ produit.prix_vente or 0 }}">
           </td>
         </tr>
         {% endfor %}
