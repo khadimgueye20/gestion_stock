@@ -1788,10 +1788,9 @@ from flask_migrate import upgrade
 from flask_login import login_required, current_user
 
 @app.route("/run-migration")
-@login_required  # 🔒 éviter qu’un inconnu l’appelle
 def run_migration():
     # 🔒 Vérifier que seul un administrateur ou ton compte peut y accéder
-    if current_user.email != "tonemail@exemple.com":
+    if current_user.email != "gkhadim202@gmail.com":
         return "⛔ Accès interdit", 403
 
     try:
