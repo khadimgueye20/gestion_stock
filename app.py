@@ -1789,15 +1789,8 @@ from flask_login import login_required, current_user
 
 @app.route("/run-migration")
 def run_migration():
-    # 🔒 Vérifier que seul un administrateur ou ton compte peut y accéder
-    if current_user.email != "gkhadim202@gmail.com":
-        return "⛔ Accès interdit", 403
+    return "✅ Route migration accessible (avant upgrade)"
 
-    try:
-        upgrade()
-        return "✅ Migration effectuée avec succès sur Render !"
-    except Exception as e:
-        return f"❌ Erreur lors de la migration : {e}", 500
 
 
 
