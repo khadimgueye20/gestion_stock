@@ -1,30 +1,166 @@
-{% extends "base.html" %}
-{% block title %}Modifier Reçu{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Modifier le reçu {{ recu.reference }}{% endblock %}
 
 {% block content %}
-<div class="container">
-  <h3>Modifier Reçu n° {{ recu.reference }}</h3>
-  <form method="post">
-    <div class="form-group">
-      <label>Nom Client</label>
-      <input type="text" name="nom_client" class="form-control" value="{{ recu.nom_client }}">
-    </div>
-    <div class="form-group">
-      <label>Téléphone Client</label>
-      <input type="text" name="telephone_client" class="form-control" value="{{ recu.telephone_client }}">
-    </div>
-    <div class="form-group">
-      <label>Montant Payé</label>
-      <input type="number" name="montant_paye" class="form-control" value="{{ recu.montant_paye }}">
-    </div>
-    <div class="form-group">
-      <label>Monnaie Rendue</label>
-      <input type="number" name="monnaie_rendue" class="form-control" value="{{ recu.monnaie_rendue }}">
-    </div>
-    <!-- Ajoute d'autres champs selon ce que tu veux permettre de modifier -->
+<div class="container my-4">
+  <h3 class="mb-3">Modifier le reçu #{{ recu.reference }}</h3>
 
-    <button type="submit" class="btn btn-primary mt-3">Enregistrer</button>
-    <a href="{{ url_for('recus') }}" class="btn btn-secondary mt-3">Annuler</a>
+  <form method="POST" action="{{ url_for('modifier_recu', recu_id=recu.id) }}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <label class="form-label">Nom du client</label>
+        <input type="text" class="form-control" name="nom_client" value="{{ recu.nom_client or 'Client' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Téléphone</label>
+        <input type="text" class="form-control" name="telephone_client" value="{{ recu.telephone_client or '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Mode de paiement</label>
+        <select class="form-select" name="mode_paiement" id="mode_paiement" required>
+          <option value="" disabled {% if not recu.mode_paiement %}selected{% endif %}>-- Sélectionner --</option>
+          <option value="Especes" {% if recu.mode_paiement == 'Especes' %}selected{% endif %}>Espèce</option>
+          <option value="Wave" {% if recu.mode_paiement == 'Wave' %}selected{% endif %}>Wave</option>
+          <option value="Orange Money" {% if recu.mode_paiement == 'Orange Money' %}selected{% endif %}>Orange Money</option>
+          <option value="Dette" {% if recu.mode_paiement == 'Dette' %}selected{% endif %}>Dette (crédit)</option>
+        </select>
+        <div id="note_dette" class="form-text" {% if recu.mode_paiement != 'Dette' %}style="display:none"{% endif %}>
+          Mode <strong>Dette</strong> : vous pouvez saisir un paiement partiel (ou 0). Le reste sera enregistré en dette.
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Montant payé</label>
+        <input type="number" step="0.01" min="0" class="form-control" id="montant_paye" name="montant_paye" value="{{ recu.montant_paye or 0 }}">
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-striped align-middle" id="tableLignes">
+        <thead class="table-light">
+          <tr>
+            <th>Produit</th>
+            <th>Stock actuel</th>
+            <th>Prix appliqué</th>
+            <th>Quantité</th>
+            <th>Sous-total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ligne in lignes %}
+          {% set prod = produits.get(ligne.produit_id) %}
+          <tr data-ligne="{{ ligne.id }}">
+            <td>{{ prod.nom if prod else ('#' ~ ligne.produit_id) }}</td>
+            <td>{{ prod.quantite if prod else '—' }}</td>
+            <td style="max-width: 160px">
+              <input type="number" step="0.01" min="0" class="form-control form-control-sm prix-ligne"
+                     name="prix_{{ ligne.id }}" value="{{ ligne.prix_unitaire }}">
+            </td>
+            <td style="max-width: 130px">
+              <input type="number" min="0" class="form-control form-control-sm qte-ligne"
+                     name="quantite_{{ ligne.id }}" value="{{ ligne.quantite }}">
+            </td>
+            <td>
+              <span class="sous-total">{{ (ligne.quantite * ligne.prix_unitaire)|round(2) }}</span> FCFA
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="4" class="text-end">Total recalculé :</th>
+            <th><span id="total_recalcule">0</span> FCFA</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+      <a href="{{ url_for('voir_recu', recu_id=recu.id) }}" class="btn btn-outline-secondary">Annuler</a>
+    </div>
   </form>
 </div>
+
+<!-- Recalcul automatique -->
+<script>
+(function() {
+  const table = document.getElementById('tableLignes');
+  const modeSelect = document.getElementById('mode_paiement');
+  const noteDette = document.getElementById('note_dette');
+  const montantPayeInput = document.getElementById('montant_paye');
+  const totalElt = document.getElementById('total_recalcule');
+
+  function toNumber(v) {
+    const n = parseFloat(v);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function formatFCFA(n) {
+    try { return Number(n.toFixed(2)).toLocaleString(); }
+    catch { return n; }
+  }
+
+  function recalcRow(tr) {
+    const prix = toNumber(tr.querySelector('.prix-ligne')?.value);
+    const qte  = toNumber(tr.querySelector('.qte-ligne')?.value);
+    const sousTotal = prix * qte;
+    const cell = tr.querySelector('.sous-total');
+    if (cell) cell.textContent = sousTotal.toFixed(2);
+    return sousTotal;
+  }
+
+  function recalcAll() {
+    let total = 0;
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      total += recalcRow(tr);
+    });
+    totalElt.textContent = formatFCFA(total);
+
+    // Si le mode n'est pas "Dette", on aligne le montant payé sur le total
+    if (modeSelect && modeSelect.value !== 'Dette') {
+      montantPayeInput.value = total.toFixed(2);
+    }
+  }
+
+  function onModeChange() {
+    if (!modeSelect) return;
+    const isDette = modeSelect.value === 'Dette';
+    if (noteDette) noteDette.style.display = isDette ? 'block' : 'none';
+    if (!isDette) {
+      // réaligne sur le total si non Dette
+      const total = Array.from(table.querySelectorAll('tbody tr'))
+        .map(recalcRow)
+        .reduce((a,b)=>a+b,0);
+      totalElt.textContent = formatFCFA(total);
+      montantPayeInput.value = total.toFixed(2);
+    }
+  }
+
+  // Bind
+  table.addEventListener('input', function(e) {
+    if (e.target.matches('.prix-ligne, .qte-ligne')) {
+      recalcAll();
+    }
+  });
+
+  if (modeSelect) modeSelect.addEventListener('change', onModeChange);
+
+  // Init au chargement
+  window.addEventListener('DOMContentLoaded', function() {
+    recalcAll();
+    onModeChange();
+  });
+})();
+</script>
 {% endblock %}

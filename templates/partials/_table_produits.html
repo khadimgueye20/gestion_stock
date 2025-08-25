@@ -18,7 +18,14 @@
       <td>{{ produit.id }}</td>
       <td>{{ produit.nom }}</td>
       <td>{{ produit.description }}</td>
-      <td>{{ produit.quantite }}</td>
+      <td>
+        {% if produit.quantite == 0 %}
+          <span class="text-danger fw-bold">Rupture</span>
+        {% else %}
+          {{ produit.quantite }}
+        {% endif %}
+      </td>
+
       <td>{{ produit.prix_achat }}</td>
       <td>{{ produit.prix_vente }}</td>
       <td>{{ produit.fournisseur.nom if produit.fournisseur else '' }}</td>

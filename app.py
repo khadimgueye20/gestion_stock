@@ -721,7 +721,6 @@ def renvoyer_code_reset(user_id):
 @app.route("/effectuer_vente", methods=["GET", "POST"])
 @login_required
 def effectuer_vente():
-    # 🔹 Récupérer tous les produits disponibles pour l'utilisateur connecté
     produits = Produit.query.filter_by(utilisateur_id=current_user.id, supprime=False).all()
 
     if request.method == "POST":
@@ -736,26 +735,30 @@ def effectuer_vente():
         except ValueError:
             montant_paye = 0.0
 
-        # 🔹 Récupération du mode de paiement
         mode_paiement = request.form.get("mode_paiement")
 
-        # ✅ Analyse des produits vendus
+        # ✅ Analyse des produits vendus avec prix appliqué
         for produit in produits:
             qte_str = request.form.get(f"quantite_{produit.id}")
+            prix_str = request.form.get(f"prix_{produit.id}")  # <-- récupère prix appliqué
+
             if qte_str and qte_str.isdigit():
                 quantite = int(qte_str)
                 if 0 < quantite <= produit.quantite:
-                    produit.quantite -= quantite
-                    montant = quantite * (produit.prix_vente or 0)
-                    montant_total += montant
-                    ventes.append((produit.id, quantite, produit.prix_vente))
+                    try:
+                        prix_applique = float(prix_str) if prix_str not in (None, "") else float(produit.prix_vente or 0)
+                    except ValueError:
+                        prix_applique = float(produit.prix_vente or 0)
 
-        # ❌ Aucun produit sélectionné
+                    produit.quantite -= quantite
+                    montant = quantite * prix_applique
+                    montant_total += montant
+                    ventes.append((produit.id, quantite, prix_applique))
+
         if not ventes:
             flash("⚠️ Aucun produit sélectionné pour la vente.", "warning")
             return redirect(url_for("effectuer_vente"))
 
-        # ✅ Création du reçu
         reference = generer_reference_recu()
         recu = Recu(
             reference=reference,
@@ -765,22 +768,21 @@ def effectuer_vente():
             monnaie_rendue=max(0, montant_paye - montant_total),
             nom_client=nom_client,
             telephone_client=telephone_client,
-            mode_paiement=mode_paiement  # 🔹 Ajout du mode de paiement
+            mode_paiement=mode_paiement
         )
         db.session.add(recu)
-        db.session.flush()  # Permet d’obtenir recu.id avant commit
+        db.session.flush()
 
-        # ✅ Enregistrement des lignes de vente
+        # ✅ Enregistrement des lignes de vente avec prix appliqué
         for prod_id, quantite, prix_unitaire in ventes:
             ligne = LigneVente(
                 recu_id=recu.id,
                 produit_id=prod_id,
                 quantite=quantite,
-                prix_unitaire=prix_unitaire
+                prix_unitaire=prix_unitaire  # ← prix appliqué saisi
             )
             db.session.add(ligne)
 
-        # ✅ Si paiement partiel → enregistrement d’une dette
         if montant_paye < montant_total:
             nouvelle_dette = Dette(
                 client_nom=nom_client,
@@ -792,14 +794,10 @@ def effectuer_vente():
             )
             db.session.add(nouvelle_dette)
 
-        # ✅ Validation en base
         db.session.commit()
         flash(f"✅ Vente enregistrée avec reçu #{recu.reference}.", "success")
-
-        # 🔹 Rediriger vers la page du reçu
         return redirect(url_for("voir_recu", recu_id=recu.id))
 
-    # Si méthode GET → Afficher la page
     return render_template("effectuer_vente.html", produits=produits)
 
 
@@ -1636,51 +1634,155 @@ def modifier_infos_boutique():
 def a_propos():
     return render_template('a_propos.html')
 
-@app.route('/recu/modifier/<int:recu_id>', methods=['GET', 'POST'])
+from flask import abort
+
+def _user_can_access_recu(recu):
+    # Vérifie que le reçu appartient bien à l'utilisateur connecté
+    return recu is not None and getattr(recu, "utilisateur_id", None) == getattr(current_user, "id", None)
+
+
+@app.route("/recu/<int:recu_id>/modifier", methods=["GET", "POST"])
 @login_required
 def modifier_recu(recu_id):
     recu = Recu.query.get_or_404(recu_id)
+    if not _user_can_access_recu(recu):
+        abort(403)
 
-    if request.method == 'POST':
-        recu.nom_client = request.form['nom_client']
-        recu.telephone_client = request.form['telephone_client']
+    # Récupère lignes + produits liés
+    lignes = (LigneVente.query
+              .filter_by(recu_id=recu.id)
+              .all())
+    produits_map = {p.id: p for p in Produit.query.filter(
+        Produit.id.in_([l.produit_id for l in lignes]),
+        Produit.utilisateur_id == current_user.id
+    ).all()}
 
-        montant_paye_str = request.form['montant_paye']
-        monnaie_rendue_str = request.form['monnaie_rendue']
+    if request.method == "GET":
+        return render_template("modifier_recu.html", recu=recu, lignes=lignes, produits=produits_map)
 
-        recu.montant_paye = float(montant_paye_str) if montant_paye_str.strip() else 0.0
-        recu.monnaie_rendue = float(monnaie_rendue_str) if monnaie_rendue_str.strip() else 0.0
+    # -------- POST : appliquer modifications --------
+    # 1) Champs du header
+    recu.nom_client = (request.form.get("nom_client") or "").strip() or "Client"
+    recu.telephone_client = (request.form.get("telephone_client") or "").strip()
+    recu.mode_paiement = (request.form.get("mode_paiement") or "").strip()
 
-        # ✅ Calcul du reste à payer
-        reste_a_payer = recu.montant_total - recu.montant_paye
+    try:
+        nouveau_montant_paye = float(request.form.get("montant_paye") or 0)
+        if nouveau_montant_paye < 0:
+            nouveau_montant_paye = 0.0
+    except ValueError:
+        nouveau_montant_paye = recu.montant_paye or 0.0
 
-        if reste_a_payer > 0:
-            # Si une dette existe déjà pour ce reçu, on la met à jour
-            if recu.dette:
-                recu.dette.montant_total = reste_a_payer
-                recu.dette.client_nom = recu.nom_client
-                recu.dette.client_telephone = recu.telephone_client
-            else:
-                # Sinon on en crée une nouvelle
-                nouvelle_dette = Dette(
-                    client_nom=recu.nom_client or "",
-                    client_telephone=recu.telephone_client or "",
-                    montant_total=reste_a_payer,
-                    montant_rembourse=0,
-                    recu_id=recu.id,
-                    utilisateur_id=current_user.id
-                )
-                db.session.add(nouvelle_dette)
+    # 2) Préparer recalcul du total et ajustement de stock
+    nouveau_total = 0.0
+    erreurs_stock = []
+
+    # On va calculer les deltas sur chaque ligne
+    for ligne in lignes:
+        prod = produits_map.get(ligne.produit_id)
+        if not prod:
+            continue  # sécurité
+
+        # Récupérer nouvelles valeurs depuis le formulaire
+        qte_str = request.form.get(f"quantite_{ligne.id}")
+        prix_str = request.form.get(f"prix_{ligne.id}")
+
+        try:
+            nouvelle_qte = int(qte_str)
+        except (TypeError, ValueError):
+            nouvelle_qte = ligne.quantite  # fallback
+
+        try:
+            nouveau_prix = float(prix_str)
+            if nouveau_prix < 0:
+                nouveau_prix = 0.0
+        except (TypeError, ValueError):
+            nouveau_prix = ligne.prix_unitaire  # fallback
+
+        # Delta de quantité pour ajuster le stock
+        delta_qte = nouvelle_qte - ligne.quantite
+        # Si delta_qte > 0 => on consomme du stock
+        if delta_qte > 0 and prod.quantite < delta_qte:
+            erreurs_stock.append(f"Stock insuffisant pour « {prod.nom} » (manque {delta_qte - prod.quantite}).")
+
+        # Accumuler le nouveau total
+        nouveau_total += nouvelle_qte * nouveau_prix
+
+    if erreurs_stock:
+        for msg in erreurs_stock:
+            flash(msg, "danger")
+        return redirect(url_for("modifier_recu", recu_id=recu.id))
+
+    # 3) Aucun problème de stock => appliquer modifications réelles
+    for ligne in lignes:
+        prod = produits_map.get(ligne.produit_id)
+        if not prod:
+            continue
+
+        qte_str = request.form.get(f"quantite_{ligne.id}")
+        prix_str = request.form.get(f"prix_{ligne.id}")
+
+        try:
+            nouvelle_qte = int(qte_str)
+        except (TypeError, ValueError):
+            nouvelle_qte = ligne.quantite
+
+        try:
+            nouveau_prix = float(prix_str)
+            if nouveau_prix < 0:
+                nouveau_prix = 0.0
+        except (TypeError, ValueError):
+            nouveau_prix = ligne.prix_unitaire
+
+        # Ajustement stock par delta
+        delta_qte = nouvelle_qte - ligne.quantite
+        if delta_qte != 0:
+            # Consomme (delta>0) ou restitue (delta<0) le stock produit
+            prod.quantite -= delta_qte  # car delta>0 => -delta ; delta<0 => --(abs) -> +stock
+
+        # Appliquer sur la ligne
+        ligne.quantite = nouvelle_qte
+        ligne.prix_unitaire = round(nouveau_prix, 2)
+
+    # 4) Recalculs du reçu
+    recu.montant_total = round(nouveau_total, 2)
+    recu.montant_paye = round(nouveau_montant_paye, 2)
+    recu.monnaie_rendue = max(0.0, round(recu.montant_paye - recu.montant_total, 2))
+
+    # 5) Dette liée au reçu (si paiement partiel)
+    dette = Dette.query.filter_by(recu_id=recu.id, utilisateur_id=current_user.id).first()
+    reste_du = recu.montant_total - recu.montant_paye
+
+    if reste_du > 0:
+        # Créer ou mettre à jour la dette
+        if not dette:
+            dette = Dette(
+                client_nom=recu.nom_client,
+                client_telephone=recu.telephone_client,
+                montant_total=recu.montant_total,
+                montant_rembourse=recu.montant_paye,
+                recu_id=recu.id,
+                utilisateur_id=current_user.id
+            )
+            db.session.add(dette)
         else:
-            # Si plus de dette, supprimer l'enregistrement dette s'il existe
-            if recu.dette:
-                db.session.delete(recu.dette)
+            dette.client_nom = recu.nom_client
+            dette.client_telephone = recu.telephone_client
+            dette.montant_total = recu.montant_total
+            # On suppose que montant_rembourse <= montant_total ; pas de remboursement ici
+            # si tu veux traiter un remboursement au vol, fais-le dans une route dédiée
+            if dette.montant_rembourse > recu.montant_paye:
+                # sécurité : si recu.montant_paye a baissé sous le remboursé déjà enregistré, on borne
+                dette.montant_rembourse = recu.montant_paye
+    else:
+        # Plus de dette sur ce reçu
+        if dette:
+            dette.montant_total = recu.montant_total
+            dette.montant_rembourse = recu.montant_total  # soldée
 
-        db.session.commit()
-        flash('Reçu modifié avec succès', 'success')
-        return redirect(url_for('recus'))
-
-    return render_template('modifier_recu.html', recu=recu)
+    db.session.commit()
+    flash("✅ Reçu modifié avec succès.", "success")
+    return redirect(url_for("voir_recu", recu_id=recu.id))
 
 @app.route('/recu_ticket/<int:recu_id>')
 @login_required

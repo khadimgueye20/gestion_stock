@@ -1,125 +1,174 @@
 {% extends 'base.html' %}
-
 {% block title %}Effectuer une vente{% endblock %}
 
 {% block content %}
 <div class="container my-4">
-  <h2 class="mb-4">🛒 Effectuer une vente</h2>
+  <h2 class="mb-3">Effectuer une vente</h2>
 
-  <!-- 🔍 Barre de recherche produit, stock ou description -->
-  <input type="text" id="searchProduit" class="form-control mb-3" placeholder="🔍 Rechercher un produit, une description ou un stock...">
-
-  <form method="POST">
-    <table id="tableProduits" class="table table-bordered table-hover">
-      <thead class="table-light">
-        <tr>
-          <th>Produit</th>
-          <th>Description</th>
-          <th>Prix de vente (FCFA)</th>
-          <th>Stock Disponible</th>
-          <th>Quantité à vendre</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for produit in produits %}
-        <tr>
-          <td>{{ produit.nom }}</td>
-          <td>{{ produit.description or "—" }}</td>
-          <td>{{ "{:,.0f}".format(produit.prix_vente or 0) }}</td>
-          <td>{{ produit.quantite }}</td>
-          <td>
-            <input type="number"
-                   class="form-control quantite-produit"
-                   name="quantite_{{ produit.id }}"
-                   placeholder="0"
-                   min="0"
-                   max="{{ produit.quantite }}"
-                   data-prix="{{ produit.prix_vente or 0 }}">
-          </td>
-        </tr>
+  <form method="POST" action="{{ url_for('effectuer_vente') }}">
+    <!-- Messages flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
         {% endfor %}
-      </tbody>
-    </table>
+      {% endif %}
+    {% endwith %}
 
-    <div class="row mb-3">
+    <!-- Barre de recherche -->
+    <input type="text" id="searchProduit" class="form-control mb-3"
+           placeholder="🔍 Rechercher un produit (nom, description, stock)…">
+
+    <!-- Tableau produits -->
+    <div class="table-responsive">
+      <table class="table table-striped align-middle" id="tableProduits">
+        <thead class="table-light">
+          <tr>
+            <th>Produit</th>
+            <th>Description</th>
+            <th>Prix de vente</th>
+            <th>Prix appliqué</th>
+            <th>Stock</th>
+            <th>Quantité</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for produit in produits %}
+          <tr>
+            <td>{{ produit.nom }}</td>
+            <td>{{ produit.description or "—" }}</td>
+            <td>{{ "{:,.0f}".format(produit.prix_vente or 0) }} FCFA</td>
+            <td style="max-width: 180px">
+              <input type="number"
+                     class="form-control form-control-sm prix-produit"
+                     name="prix_{{ produit.id }}"
+                     step="0.01"
+                     min="0"
+                     value="{{ produit.prix_vente or 0 }}">
+            </td>
+            <td>{{ produit.quantite }}</td>
+            <td style="max-width: 140px">
+              <input type="number"
+                     class="form-control form-control-sm quantite-produit"
+                     name="quantite_{{ produit.id }}"
+                     placeholder="0"
+                     min="0"
+                     max="{{ produit.quantite }}">
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Totaux -->
+    <div class="row g-3 mt-2">
       <div class="col-md-4">
-        <label>Nom du client</label>
-        <input type="text" name="nom_client" class="form-control">
+        <label class="form-label">Montant total</label>
+        <input type="text" class="form-control" id="montant_total_affiche" readonly>
       </div>
       <div class="col-md-4">
-        <label>Téléphone</label>
-        <input type="text" name="telephone_client" class="form-control">
-      </div>
-      <div class="col-md-4">
-        <label>Montant total</label>
-        <input type="text" id="montant_total_affiche" class="form-control" readonly>
+        <label for="montant_paye" class="form-label">Montant payé</label>
+        <input type="number" step="0.01" min="0" class="form-control" id="montant_paye" name="montant_paye" placeholder="0">
+        <div id="note_dette" class="form-text" style="display:none;">
+          Mode <strong>Dette</strong> : vous pouvez saisir un paiement partiel (ou 0). Le reste sera enregistré en dette.
+        </div>
       </div>
     </div>
 
-    <div class="row mb-3">
+    <!-- Infos client en bas -->
+    <div class="row g-3 mt-3">
       <div class="col-md-6">
-        <label>Montant payé (FCFA)</label>
-        <input type="number" name="montant_paye" id="montant_paye" class="form-control" required>
+        <label for="nom_client" class="form-label">Nom du client </label>
+        <input type="text" class="form-control" id="nom_client" name="nom_client" placeholder="Client">
       </div>
       <div class="col-md-6">
-        <label>Mode de paiement</label>
-        <select name="mode_paiement" class="form-select" required>
-          <option value="" disabled selected>-- Choisir un mode de paiement --</option>
+        <label for="telephone_client" class="form-label">Téléphone du client </label>
+        <input type="text" class="form-control" id="telephone_client" name="telephone_client" placeholder="77 123 45 67">
+      </div>
+      <div class="col-md-6">
+        <label for="mode_paiement" class="form-label">Mode de paiement</label>
+        <select class="form-select" id="mode_paiement" name="mode_paiement" required>
+          <option value="" selected disabled>-- Sélectionner --</option>
+          <option value="Especes">Espèce</option>
           <option value="Wave">Wave</option>
           <option value="Orange Money">Orange Money</option>
-          <option value="Espèce">Espèce</option>
+          <option value="Dette">Dette (crédit)</option>
         </select>
       </div>
     </div>
 
-    <div class="text-end">
-      <button type="submit" class="btn btn-success">Valider la vente</button>
-      <a href="{{ url_for('index') }}" class="btn btn-secondary">Annuler</a>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-receipt"></i> Valider la vente
+      </button>
+      <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Annuler</a>
     </div>
   </form>
 </div>
-{% endblock %}
 
-{% block scripts %}
+<!-- JS -->
 <script>
-function calculerTotalEtAffecter() {
+  const searchInput = document.getElementById("searchProduit");
+  const table = document.getElementById("tableProduits");
+  const tbody = table.querySelector("tbody");
+  const selectMode = document.getElementById("mode_paiement");
+  const montantPayeInput = document.getElementById("montant_paye");
+  const noteDette = document.getElementById("note_dette");
+
+  // Recherche
+  searchInput.addEventListener("input", function() {
+    const term = this.value.toLowerCase().trim();
+    Array.from(tbody.querySelectorAll("tr")).forEach(row => {
+      const text = row.innerText.toLowerCase();
+      row.style.display = text.includes(term) ? "" : "none";
+    });
+  });
+
+  // Calcule le total
+  function totalPanier() {
     let total = 0;
-    document.querySelectorAll(".quantite-produit").forEach(input => {
-        const qte = parseInt(input.value) || 0;
-        const prix = parseFloat(input.dataset.prix);
-        total += qte * prix;
+    tbody.querySelectorAll("tr").forEach(row => {
+      const qte = parseFloat(row.querySelector(".quantite-produit")?.value) || 0;
+      const prix = parseFloat(row.querySelector(".prix-produit")?.value) || 0;
+      if (qte > 0 && prix >= 0) total += qte * prix;
     });
+    return Number(total.toFixed(2));
+  }
+
+  // Met à jour le champ Montant total + Montant payé
+  function majAffichageTotal() {
+    const total = totalPanier();
     document.getElementById("montant_total_affiche").value = total.toLocaleString() + " FCFA";
-    const montantPayeInput = document.getElementById("montant_paye");
-    if (!montantPayeInput.value || parseFloat(montantPayeInput.value) < total) {
-      montantPayeInput.value = total;
+
+    const mode = selectMode.value;
+    if (mode !== "Dette") {
+      montantPayeInput.value = total; // auto-rempli
     }
-}
+  }
 
-document.querySelectorAll(".quantite-produit").forEach(input => {
-    input.addEventListener("input", calculerTotalEtAffecter);
-});
+  // Changement du mode de paiement
+  function onModePaiementChange() {
+    if (selectMode.value === "Dette") {
+      noteDette.style.display = "block";
+    } else {
+      noteDette.style.display = "none";
+      montantPayeInput.value = totalPanier();
+    }
+  }
 
-// 🔍 Recherche par nom, description ou stock
-document.getElementById('searchProduit').addEventListener('keyup', function () {
-    const searchValue = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#tableProduits tbody tr');
+  // Bind events
+  document.querySelectorAll(".quantite-produit, .prix-produit").forEach(input => {
+    input.addEventListener("input", majAffichageTotal);
+  });
+  selectMode.addEventListener("change", onModePaiementChange);
 
-    rows.forEach(row => {
-        const nomProduit = row.cells[0].textContent.toLowerCase();
-        const description = row.cells[1].textContent.toLowerCase();
-        const stockDispo = row.cells[3].textContent.toLowerCase();
-
-        if (
-            nomProduit.includes(searchValue) ||
-            description.includes(searchValue) ||
-            stockDispo.includes(searchValue)
-        ) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-});
+  window.addEventListener("DOMContentLoaded", () => {
+    majAffichageTotal();
+    onModePaiementChange();
+  });
 </script>
 {% endblock %}
