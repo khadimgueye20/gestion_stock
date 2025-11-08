@@ -109,6 +109,21 @@
   }
 }
 
+.admin-link .nav-link {
+    color: #007bff; /* Bleu professionnel */
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+
+.admin-link .nav-link:hover {
+    background-color: #007bff;
+    color: white;
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+    transform: translateY(-2px);
+}
+
 
   </style>
 </head>
@@ -148,12 +163,22 @@
       <i class="bi bi-list"></i> Menu
     </button>
     <ul class="dropdown-menu dropdown-menu-end">
-      <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('fournisseurs') }}">📦 Fournisseurs</a></li>
-      <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('stats') }}">📊 Statistiques</a></li>
-      <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('liste_retours') }}">🔁 Retours</a></li>
-      <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('recus') }}">🧾 Reçus</a></li>
-      <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('dettes') }}">💳 Dettes</a></li>
-    </ul>
+    <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('fournisseurs') }}">📦 Fournisseurs</a></li>
+    <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('stats') }}">📊 Statistiques</a></li>
+    <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('liste_retours') }}">🔁 Retours</a></li>
+    <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('recus') }}">🧾 Reçus</a></li>
+    <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('dettes') }}">💳 Dettes</a></li>
+
+    {% if current_user.is_authenticated and current_user.email == "gkhadim202@gmail.com" %}
+<li class="nav-item admin-link ms-3">
+    <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+        <i class="fas fa-user-shield"></i> Espace Admin
+    </a>
+</li>
+{% endif %}
+
+</ul>
+
   </div>
 
 </div>

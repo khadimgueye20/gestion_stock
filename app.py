@@ -50,6 +50,26 @@ app.config['MAIL_PASSWORD'] = 'dtqa qczc dxaq lslg'
 app.config['MAIL_DEFAULT_SENDER'] = 'geytoris.stock@gmail.com'
 mail = Mail(app)
 
+
+from flask import render_template, redirect, url_for, flash, session
+from flask_login import login_required, current_user
+
+# Remplace cette valeur par ton e-mail admin
+ADMIN_EMAIL = "tonemailadmin@example.com"
+
+@app.route('/admin')
+@login_required
+def admin_dashboard():
+    # Vérifie que seul l'admin puisse accéder
+    if current_user.email != ADMIN_EMAIL:
+        flash("Accès refusé : cette page est réservée à l’administrateur.", "danger")
+        return redirect(url_for('accueil'))  # ou ta page d’accueil
+    
+    # Récupère tous les utilisateurs
+    utilisateurs = Utilisateur.query.all()
+    
+    return render_template('admin_dashboard.html', utilisateurs=utilisateurs)
+
 # Initialisation des extensions
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -74,6 +94,7 @@ class Utilisateur(db.Model, UserMixin):
     adresse_boutique = db.Column(db.String(200))
     telephone_boutique = db.Column(db.String(50))
     logo = db.Column(db.String(200))  # Chemin du fichier image/logo
+    est_suspendu = db.Column(db.Boolean, default=False)
 
     code_pin = db.Column(db.String(10), nullable=True)
 
@@ -278,6 +299,12 @@ def index():
 @app.route('/ajouter', methods=['POST'])
 @login_required
 def ajouter():
+    # 🔒 Vérifier si l'utilisateur est suspendu
+    if getattr(current_user, 'est_suspendu', False):
+        flash("🚫 Votre compte est suspendu. Vous ne pouvez pas ajouter un produit. Contactez l'administrateur.", "danger")
+        return redirect(url_for("index"))
+
+    # ✅ Si non suspendu, on continue l'ajout
     nom = request.form.get('nom')
     description = request.form.get('description')
     quantite = int(request.form.get('quantite'))
@@ -294,11 +321,11 @@ def ajouter():
         fournisseur_id=fournisseur_id,
         utilisateur_id=current_user.id
     )
+
     db.session.add(produit)
     db.session.commit()
     flash("✅ Produit ajouté avec succès.", "success")
     return redirect(url_for('index'))
-
 
 
 # Route pour supprimer un produit
@@ -405,22 +432,6 @@ def modifier_produit(id):
     return render_template('modifier.html', produit=produit)
 
 
-
-# Routes de connexion / déconnexion
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    if request.method == 'POST':
-        nom = request.form['nom_utilisateur']
-        mot_de_passe = request.form['mot_de_passe']
-        utilisateur = Utilisateur.query.filter_by(nom_utilisateur=nom).first()
-        if utilisateur and check_password_hash(utilisateur.mot_de_passe, mot_de_passe):
-            login_user(utilisateur)
-            flash("Connexion réussie.", "success")
-            return redirect(url_for('index'))
-        flash("Identifiants invalides.", "danger")
-    return render_template('login.html',app_name='Geytoris')
 
 
 @app.route('/demande_inscription', methods=['POST'])
@@ -721,6 +732,11 @@ def renvoyer_code_reset(user_id):
 @app.route("/effectuer_vente", methods=["GET", "POST"])
 @login_required
 def effectuer_vente():
+    # 🚫 Si le compte est suspendu → interdiction d'effectuer une vente
+    if getattr(current_user, 'est_suspendu', False):
+        flash("🚫 Votre compte est suspendu. Vous ne pouvez pas effectuer une vente. Contactez l'administrateur.", "danger")
+        return redirect(url_for("index"))  # ✅ Changé de 'dashboard' à 'index'
+
     produits = Produit.query.filter_by(utilisateur_id=current_user.id, supprime=False).all()
 
     if request.method == "POST":
@@ -759,6 +775,7 @@ def effectuer_vente():
             flash("⚠️ Aucun produit sélectionné pour la vente.", "warning")
             return redirect(url_for("effectuer_vente"))
 
+        # ✅ Génération du reçu
         reference = generer_reference_recu()
         recu = Recu(
             reference=reference,
@@ -779,10 +796,11 @@ def effectuer_vente():
                 recu_id=recu.id,
                 produit_id=prod_id,
                 quantite=quantite,
-                prix_unitaire=prix_unitaire  # ← prix appliqué saisi
+                prix_unitaire=prix_unitaire
             )
             db.session.add(ligne)
 
+        # 💳 Si paiement partiel → enregistrer une dette
         if montant_paye < montant_total:
             nouvelle_dette = Dette(
                 client_nom=nom_client,
@@ -1892,6 +1910,78 @@ from flask_login import login_required, current_user
 @app.route("/run-migration")
 def run_migration():
     return "✅ Route migration accessible (avant upgrade)"
+
+ADMIN_EMAIL = "gkhadim202@gmail.com"  # Remplace par ton email admin
+
+@app.route('/admin')
+@login_required
+def admin_dashboard_admin():
+    if current_user.email != ADMIN_EMAIL:
+        flash("Accès refusé : cette page est réservée à l’administrateur.", "danger")
+        return redirect(url_for('index'))
+
+    utilisateurs = Utilisateur.query.all()
+    return render_template('admin_dashboard.html', utilisateurs=utilisateurs)
+
+
+@app.route('/suspendre_utilisateur/<int:id>')
+@login_required
+def suspendre_utilisateur(id):
+    if current_user.email != ADMIN_EMAIL:
+        flash("Accès refusé.", "danger")
+        return redirect(url_for('index'))
+
+    user = Utilisateur.query.get_or_404(id)
+    user.est_suspendu = True
+    db.session.commit()
+    flash(f"L'utilisateur {user.nom_utilisateur} a été suspendu.", "warning")
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/reactiver_utilisateur/<int:id>')
+@login_required
+def reactiver_utilisateur(id):
+    if current_user.email != ADMIN_EMAIL:
+        flash("Accès refusé.", "danger")
+        return redirect(url_for('index'))
+
+    user = Utilisateur.query.get_or_404(id)
+    user.est_suspendu = False
+    db.session.commit()
+    flash(f"L'utilisateur {user.nom_utilisateur} a été réactivé.", "success")
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # Si déjà connecté, rediriger vers l'accueil
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        # Récupération des champs du formulaire
+        nom = request.form.get('nom_utilisateur')
+        email = request.form.get('email')
+        mot_de_passe = request.form.get('mot_de_passe')
+
+        utilisateur = None
+
+        # Cherche par email si fourni
+        if email:
+            utilisateur = Utilisateur.query.filter_by(email=email).first()
+        # Sinon cherche par nom_utilisateur
+        elif nom:
+            utilisateur = Utilisateur.query.filter_by(nom_utilisateur=nom).first()
+
+        if utilisateur and check_password_hash(utilisateur.mot_de_passe, mot_de_passe):
+            # Connexion réussie
+            login_user(utilisateur)
+            flash("Connexion réussie !", "success")
+            return redirect(url_for('index'))
+        else:
+            flash("Identifiants invalides.", "danger")
+
+    # Affiche le formulaire de connexion
+    return render_template('login.html', app_name='Geytoris')
 
 
 
