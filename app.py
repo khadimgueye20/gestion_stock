@@ -1138,6 +1138,8 @@ def supprimer_retour_definitif(retour_id):
         flash("Retour supprimé définitivement.", "success")
     return redirect(url_for('corbeille_retours'))
 
+from dateutil.relativedelta import relativedelta  # <-- Ajoutez en haut du fichier avec les autres imports
+
 @app.route('/stats')
 @login_required
 def stats():
@@ -1145,6 +1147,12 @@ def stats():
     now = datetime.now()
     current_month = now.month
     current_year = now.year
+
+    # ========== AJOUTEZ ICI (après les variables de date) ==========
+    # Mois précédent
+    prev_month = (now - relativedelta(months=1)).month
+    prev_year = (now - relativedelta(months=1)).year
+    # ================================================================
 
     # Produits les plus vendus du mois
     produits_vendus = db.session.query(
@@ -1186,7 +1194,23 @@ def stats():
          extract('year', Recu.date_creation) == current_year
      ).scalar() or 0
 
-    # Coût d’achat total
+    # ========== AJOUTEZ ICI (après total_ventes) ==========
+    # CA mois précédent
+    total_ventes_prev = db.session.query(
+        func.sum(LigneVente.quantite * LigneVente.prix_unitaire)
+    ).join(Recu, LigneVente.recu_id == Recu.id).filter(
+        Recu.utilisateur_id == utilisateur_id,
+        extract('month', Recu.date_creation) == prev_month,
+        extract('year', Recu.date_creation) == prev_year
+    ).scalar() or 0
+
+    # Évolution en %
+    evolution = 0
+    if total_ventes_prev > 0:
+        evolution = ((total_ventes - total_ventes_prev) / total_ventes_prev) * 100
+    # ======================================================
+
+    # Coût d'achat total
     prix_achat_total = db.session.query(
         func.sum(LigneVente.quantite * Produit.prix_achat)
     ).join(Produit, LigneVente.produit_id == Produit.id)\
@@ -1197,10 +1221,10 @@ def stats():
          extract('year', Recu.date_creation) == current_year
      ).scalar() or 0
 
-    # Bénéfice = ventes - achats
+    # Bénéfice
     benefice_total = total_ventes - prix_achat_total
 
-    # Marge = bénéfice / chiffre d’affaires * 100
+    # Marge
     marge_pourcentage = 0
     if total_ventes > 0:
         marge_pourcentage = (benefice_total / total_ventes) * 100
@@ -1208,19 +1232,48 @@ def stats():
     # Nom du mois
     mois_actuel = now.strftime("%B")
 
+    # Meilleur client
+    meilleur_client = db.session.query(
+        Recu.nom_client,
+        func.sum(Recu.montant_total).label('total_depense')
+    ).filter(
+        Recu.utilisateur_id == utilisateur_id,
+        Recu.nom_client != None,
+        extract('month', Recu.date_creation) == current_month,
+        extract('year', Recu.date_creation) == current_year
+    ).group_by(Recu.nom_client).order_by(func.sum(Recu.montant_total).desc()).first()
+
+    # Meilleure vente
+    meilleure_vente = Recu.query.filter(
+        Recu.utilisateur_id == utilisateur_id,
+        extract('month', Recu.date_creation) == current_month,
+        extract('year', Recu.date_creation) == current_year
+    ).order_by(Recu.montant_total.desc()).first()
+
+    # Vente la plus basse
+    vente_plus_basse = Recu.query.filter(
+        Recu.utilisateur_id == utilisateur_id,
+        Recu.montant_total > 0,
+        extract('month', Recu.date_creation) == current_month,
+        extract('year', Recu.date_creation) == current_year
+    ).order_by(Recu.montant_total.asc()).first()
+
     return render_template(
-    "stats.html",
-    produits_vendus=produits_vendus,
-    stock_faible=stock_faible,
-    nb_ventes=nb_ventes,
-    total_ventes=total_ventes,
-    total_achats=prix_achat_total,   # <--- ajoute cet alias
-    benefice_total=benefice_total,
-    marge_pourcentage=marge_pourcentage,
-    mois=mois_actuel
-)
-
-
+        "stats.html",
+        produits_vendus=produits_vendus,
+        stock_faible=stock_faible,
+        nb_ventes=nb_ventes,
+        total_ventes=total_ventes,
+        total_achats=prix_achat_total,
+        benefice_total=benefice_total,
+        marge_pourcentage=marge_pourcentage,
+        mois=mois_actuel,
+        meilleur_client=meilleur_client,
+        meilleure_vente=meilleure_vente,
+        vente_plus_basse=vente_plus_basse,
+        evolution=evolution,  # <-- Ajoutez cette ligne
+        total_ventes_prev=total_ventes_prev  # <-- Ajoutez cette ligne
+    )
 @app.route("/rapport_pdf")
 @login_required
 def rapport_pdf():
@@ -1983,8 +2036,24 @@ def login():
     # Affiche le formulaire de connexion
     return render_template('login.html', app_name='Geytoris')
 
-
-
+@app.route('/client/<nom_client>/historique')
+@login_required
+def historique_client(nom_client):
+    # Récupérer tous les reçus du client
+    recus = Recu.query.filter(
+        Recu.nom_client == nom_client,
+        Recu.utilisateur_id == current_user.id,
+        Recu.supprime == False
+    ).order_by(Recu.date_creation.desc()).all()
+    
+    # Total dépensé
+    total_depense = sum(r.montant_total for r in recus)
+    
+    return render_template('historique_client.html', 
+        nom_client=nom_client,
+        recus=recus, 
+        total_depense=total_depense
+    )
 
 # Lancement de l'application
 if __name__ == '__main__':

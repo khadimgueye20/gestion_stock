@@ -11,8 +11,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="{{ url_for('static', filename='logo_geytoris.png') }}" type="image/png">
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
-
 
   <style>
     body {
@@ -51,81 +49,169 @@
     }
     .nav-gold-1 { color: #d4af37 !important; font-weight: bold; }
     .nav-gold-1:hover { color: #bfa12f !important; text-decoration: underline; }
-
     .nav-gold-4 { color: #e1c16e !important; font-weight: bold; }
     .nav-gold-4:hover { color: #cfae5f !important; text-decoration: underline; }
-
     .nav-link { transition: color 0.3s ease; }
-
     .nav-links-section {
       background: linear-gradient(to right, #f0f0f0, #dcdcdc);
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
       border-radius: 12px;
     }
 
- @media (max-width: 576px) {
-  .nav-links-section {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    width: 100%;
-    margin-top: 1rem;
-  }
+    @media (max-width: 576px) {
+      .nav-links-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+        margin-top: 1rem;
+      }
+      .nav-links-section .nav-item {
+        width: 100%;
+        margin-bottom: 8px;
+      }
+      .btn, .nav-link {
+        width: 100%;
+      }
+      .logo-navbar {
+        height: 45px;
+      }
+      .nav-links-section {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+      }
+      .nav-links-section a, .nav-links-section button {
+        width: 100%;
+      }
+      .nav-links-section .dropdown {
+        width: 100%;
+      }
+    }
 
-  .nav-links-section .nav-item {
-    width: 100%;
-    margin-bottom: 8px;
-  }
+    .nav-links-section a, .nav-links-section button, .nav-links-section span {
+      font-size: 0.95rem;
+    }
 
-  .btn, .nav-link {
-    width: 100%;
-  }
-}
+    .admin-link .nav-link {
+      color: #007bff;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border-radius: 8px;
+      padding: 6px 12px;
+    }
 
-.logo-navbar {
-  height: 60px;
-}
-@media (max-width: 576px) {
-  .logo-navbar {
-    height: 45px;
-  }
-}
+    .admin-link .nav-link:hover {
+      background-color: #007bff;
+      color: white;
+      box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+      transform: translateY(-2px);
+    }
 
-.nav-links-section a, .nav-links-section button, .nav-links-section span {
-  font-size: 0.95rem;
-}
-
-@media (max-width: 576px) {
-  .nav-links-section {
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-  }
-  .nav-links-section a, .nav-links-section button {
-    width: 100%;
-  }
-  .nav-links-section .dropdown {
-    width: 100%;
-  }
-}
-
-.admin-link .nav-link {
-    color: #007bff; /* Bleu professionnel */
-    font-weight: 600;
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    padding: 6px 12px;
-}
-
-.admin-link .nav-link:hover {
-    background-color: #007bff;
-    color: white;
-    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
-    transform: translateY(-2px);
-}
-
-
+    /* MODE SOMBRE COMPLET */
+    html.dark-mode body {
+      background-color: #1a1a1a !important;
+      color: #f0f0f0 !important;
+    }
+    html.dark-mode .navbar {
+      background-color: #2d2d2d !important;
+    }
+    html.dark-mode .nav-links-section {
+      background: #2d2d2d !important;
+    }
+    html.dark-mode .container {
+      background-color: rgba(45, 45, 45, 0.95) !important;
+      color: #f0f0f0 !important;
+    }
+    html.dark-mode .card {
+      background-color: #2d2d2d !important;
+      color: #f0f0f0 !important;
+    }
+    html.dark-mode .table {
+      color: #f0f0f0 !important;
+      background-color: #2d2d2d !important;
+    }
+    html.dark-mode .table thead th {
+      background-color: #3d3d3d !important;
+      color: #f0f0f0 !important;
+    }
+    html.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+      background-color: #333 !important;
+    }
+    html.dark-mode .table-light {
+      background-color: #3d3d3d !important;
+      color: #f0f0f0 !important;
+    }
+    html.dark-mode .form-control,
+    html.dark-mode .form-select {
+      background-color: #3d3d3d !important;
+      color: #f0f0f0 !important;
+      border-color: #555 !important;
+    }
+    html.dark-mode .form-control:focus,
+    html.dark-mode .form-select:focus {
+      background-color: #4d4d4d !important;
+      color: #f0f0f0 !important;
+      border-color: #777 !important;
+    }
+    html.dark-mode label,
+    html.dark-mode .form-label {
+      color: #f0f0f0 !important;
+    }
+    html.dark-mode h1, html.dark-mode h2, html.dark-mode h3,
+    html.dark-mode h4, html.dark-mode h5, html.dark-mode h6 {
+      color: #f0f0f0 !important;
+    }
+    html.dark-mode .btn-outline-dark {
+      color: #f0f0f0 !important;
+      border-color: #f0f0f0 !important;
+    }
+    html.dark-mode .btn-outline-dark:hover {
+      background-color: #f0f0f0 !important;
+      color: #1a1a1a !important;
+    }
+    html.dark-mode .dropdown-menu {
+      background-color: #2d2d2d !important;
+    }
+    html.dark-mode .dropdown-item {
+      color: #f0f0f0 !important;
+    }
+    html.dark-mode .dropdown-item:hover {
+      background-color: #3d3d3d !important;
+    }
+    html.dark-mode .alert {
+      background-color: #3d3d3d !important;
+      color: #f0f0f0 !important;
+      border-color: #555 !important;
+    }
+    html.dark-mode .bg-light {
+      background-color: #3d3d3d !important;
+    }
+    html.dark-mode .text-dark {
+      color: #f0f0f0 !important;
+    }
+    html.dark-mode .bg-warning-subtle {
+      background-color: #4d4d3d !important;
+    }
+    html.dark-mode small,
+    html.dark-mode .form-text {
+      color: #ccc !important;
+    }
   </style>
+
+  <script>
+    (function() {
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.documentElement.classList.add('dark-mode');
+      }
+    })();
+
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark-mode');
+      const isDark = document.documentElement.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDark);
+    }
+  </script>
 </head>
 <body>
 
@@ -136,54 +222,52 @@
     </a>
 
     {% if current_user.is_authenticated %}
-<div class="d-flex flex-wrap justify-content-center align-items-center gap-3 nav-links-section px-3 py-2">
+    <div class="d-flex flex-wrap justify-content-center align-items-center gap-3 nav-links-section px-3 py-2">
+      <a class="btn btn-light fw-bold" href="{{ url_for('index') }}">
+        <i class="bi bi-house-door-fill"></i> Accueil
+      </a>
 
-  <a class="btn btn-light fw-bold" href="{{ url_for('index') }}">
-    <i class="bi bi-house-door-fill"></i> Accueil
-  </a>
+      <span class="d-flex align-items-center fw-bold">
+        Connecté : {{ current_user.nom_utilisateur }}
+        <a href="{{ url_for('modifier_infos_boutique') }}" class="btn btn-light btn-sm rounded-circle ms-2" style="width: 36px; height: 36px;">
+          <i class="bi bi-gear-fill"></i>
+        </a>
+      </span>
 
-  <span class="d-flex align-items-center fw-bold">
-    Connecté : {{ current_user.nom_utilisateur }}
-    <a href="{{ url_for('modifier_infos_boutique') }}" class="btn btn-light btn-sm rounded-circle ms-2" style="width: 36px; height: 36px;">
-      <i class="bi bi-gear-fill"></i>
-    </a>
-  </span>
+      <a class="btn btn-light fw-bold" href="{{ url_for('corbeille') }}">
+        <i class="bi bi-trash3"></i> Corbeille
+      </a>
 
-  <a class="btn btn-light fw-bold" href="{{ url_for('corbeille') }}">
-    <i class="bi bi-trash3"></i> Corbeille
-  </a>
+      <button onclick="toggleDarkMode()" class="btn btn-outline-secondary fw-bold">
+        <i class="bi bi-moon-fill"></i>
+      </button>
 
-  <button id="btn-deconnexion" class="btn btn-outline-danger fw-bold">
-    Déconnexion
-  </button>
+      <button id="btn-deconnexion" class="btn btn-outline-danger fw-bold">
+        Déconnexion
+      </button>
 
-  <!-- Menu déroulant -->
-  <div class="dropdown">
-    <button class="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown">
-      <i class="bi bi-list"></i> Menu
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end">
-    <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('fournisseurs') }}">📦 Fournisseurs</a></li>
-    <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('stats') }}">📊 Statistiques</a></li>
-    <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('liste_retours') }}">🔁 Retours</a></li>
-    <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('recus') }}">🧾 Reçus</a></li>
-    <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('dettes') }}">💳 Dettes</a></li>
+      <div class="dropdown">
+        <button class="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown">
+          <i class="bi bi-list"></i> Menu
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('fournisseurs') }}">📦 Fournisseurs</a></li>
+          <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('stats') }}">📊 Statistiques</a></li>
+          <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('liste_retours') }}">🔁 Retours</a></li>
+          <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('recus') }}">🧾 Reçus</a></li>
+          <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('dettes') }}">💳 Dettes</a></li>
 
-    {% if current_user.is_authenticated and current_user.email == "gkhadim202@gmail.com" %}
-<li class="nav-item admin-link ms-3">
-    <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
-        <i class="fas fa-user-shield"></i> Espace Admin
-    </a>
-</li>
-{% endif %}
-
-</ul>
-
-  </div>
-
-</div>
-{% endif %}
-
+          {% if current_user.is_authenticated and current_user.email == "gkhadim202@gmail.com" %}
+          <li class="nav-item admin-link ms-3">
+            <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+              <i class="fas fa-user-shield"></i> Espace Admin
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </nav>
 
@@ -208,13 +292,9 @@
   </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Confirmation de déconnexion -->
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const btnDeconnexion = document.getElementById('btn-deconnexion');
@@ -237,7 +317,6 @@
       });
     }
 
-    // Fermeture auto des alertes flash
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(function (alert) {
       setTimeout(function () {
@@ -246,18 +325,11 @@
       }, 3000);
     });
   });
-</script>
 
-{% block scripts %}{% endblock %}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
   document.querySelectorAll('.form-supprimer').forEach(form => {
     form.addEventListener('submit', function (e) {
-      e.preventDefault();  // Empêche l'envoi immédiat
-
+      e.preventDefault();
       const nom = form.dataset.nom || 'ce produit';
-
       Swal.fire({
         title: 'Supprimer ?',
         text: `Voulez-vous vraiment supprimer ${nom} ?`,
@@ -269,13 +341,14 @@
         cancelButtonText: 'Annuler'
       }).then((result) => {
         if (result.isConfirmed) {
-          form.submit();  // Soumettre le formulaire après confirmation
+          form.submit();
         }
       });
     });
   });
 </script>
 
+{% block scripts %}{% endblock %}
 
 </body>
 </html>

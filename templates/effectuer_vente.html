@@ -66,11 +66,11 @@
 
     <!-- Totaux -->
     <div class="row g-3 mt-2">
-      <div class="col-md-4">
+      <div class="col-md-6">
         <label class="form-label">Montant total</label>
         <input type="text" class="form-control" id="montant_total_affiche" readonly>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-6">
         <label for="montant_paye" class="form-label">Montant payé</label>
         <input type="number" step="0.01" min="0" class="form-control" id="montant_paye" name="montant_paye" placeholder="0">
         <div id="note_dette" class="form-text" style="display:none;">
@@ -79,7 +79,8 @@
       </div>
     </div>
 
-    <!-- Infos client en bas -->
+  
+    <!-- Infos client -->
     <div class="row g-3 mt-3">
       <div class="col-md-6">
         <label for="nom_client" class="form-label">Nom du client </label>
@@ -110,7 +111,6 @@
   </form>
 </div>
 
-<!-- JS -->
 <script>
   const searchInput = document.getElementById("searchProduit");
   const table = document.getElementById("tableProduits");
@@ -119,7 +119,6 @@
   const montantPayeInput = document.getElementById("montant_paye");
   const noteDette = document.getElementById("note_dette");
 
-  // Recherche
   searchInput.addEventListener("input", function() {
     const term = this.value.toLowerCase().trim();
     Array.from(tbody.querySelectorAll("tr")).forEach(row => {
@@ -128,7 +127,6 @@
     });
   });
 
-  // Calcule le total
   function totalPanier() {
     let total = 0;
     tbody.querySelectorAll("tr").forEach(row => {
@@ -139,18 +137,15 @@
     return Number(total.toFixed(2));
   }
 
-  // Met à jour le champ Montant total + Montant payé
   function majAffichageTotal() {
     const total = totalPanier();
     document.getElementById("montant_total_affiche").value = total.toLocaleString() + " FCFA";
-
     const mode = selectMode.value;
     if (mode !== "Dette") {
-      montantPayeInput.value = total; // auto-rempli
+      montantPayeInput.value = total;
     }
   }
 
-  // Changement du mode de paiement
   function onModePaiementChange() {
     if (selectMode.value === "Dette") {
       noteDette.style.display = "block";
@@ -160,7 +155,7 @@
     }
   }
 
-  // Bind events
+ 
   document.querySelectorAll(".quantite-produit, .prix-produit").forEach(input => {
     input.addEventListener("input", majAffichageTotal);
   });

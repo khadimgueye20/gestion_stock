@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>📊 Historique Client</h2>
+  <p class="lead">Total dépensé : <strong>{{ total_depense | round(0) }} F CFA</strong></p>
+  
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Référence</th>
+        <th>Montant</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for recu in recus %}
+      <tr>
+        <td>{{ recu.date_creation.strftime('%d/%m/%Y') }}</td>
+        <td>{{ recu.reference }}</td>
+        <td>{{ recu.montant_total | round(0) }} F CFA</td>
+        <td><a href="{{ url_for('voir_recu', recu_id=recu.id) }}" class="btn btn-sm btn-primary">Voir</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
