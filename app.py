@@ -21,6 +21,8 @@ from weasyprint import HTML
 import calendar
 import locale
 import sys
+
+from recu_pdf import generate_recu_A4_pdf
 try:
     if sys.platform.startswith('win'):  # Windows
         locale.setlocale(locale.LC_TIME, 'French_France.1252')
@@ -2054,6 +2056,57 @@ def historique_client(nom_client):
         recus=recus, 
         total_depense=total_depense
     )
+
+@app.route("/telecharger_recu_pdf/<int:recu_id>")
+@login_required
+def telecharger_recu_pdf(recu_id):
+    recu = Recu.query.get_or_404(recu_id)
+    lignes = LigneVente.query.filter_by(recu_id=recu.id).all()
+
+    # 1️⃣ Informations vente
+    vente_data = {
+        "reference": recu.reference,
+        "montant_total": recu.montant_total,
+        "montant_paye": recu.montant_paye,
+        "monnaie_rendue": recu.monnaie_rendue,
+        "items": [
+            {
+                "nom": l.produit.nom,
+                "quantite": l.quantite,
+                "prix": l.prix_unitaire,
+                "total": l.quantite * l.prix_unitaire
+            }
+            for l in lignes
+        ]
+    }
+
+    # 2️⃣ Informations boutique
+    boutique_data = {
+        "nom_boutique": current_user.nom_boutique or "Ma Boutique",
+        "adresse": current_user.adresse_boutique or "",
+        "telephone": current_user.telephone_boutique or ""
+    }
+
+    # 3️⃣ Informations client
+    client_data = {
+        "nom": recu.nom_client or "",
+        "telephone": recu.telephone_client or ""
+    }
+
+    # 4️⃣ Créer automatiquement le dossier /pdfs
+    import os
+    folder = "pdfs"
+    os.makedirs(folder, exist_ok=True)
+
+    # 5️⃣ Chemin complet du fichier PDF
+    filepath = os.path.join(folder, f"recu_{recu.reference}.pdf")
+
+    # 6️⃣ Génération du PDF
+    generate_recu_A4_pdf(filepath, vente_data, boutique_data, client_data)
+
+    # 7️⃣ Envoi du fichier à l’utilisateur
+    return send_file(filepath, as_attachment=True)
+
 
 # Lancement de l'application
 if __name__ == '__main__':
