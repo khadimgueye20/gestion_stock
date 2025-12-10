@@ -17,7 +17,6 @@ from xhtml2pdf import pisa
 from io import BytesIO
 from flask import render_template_string
 from sqlalchemy import func, extract
-from weasyprint import HTML
 import calendar
 import locale
 import sys
