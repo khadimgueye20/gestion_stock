@@ -36,13 +36,25 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Configuration de la base de données PostgreSQL
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL") or "postgresql://postgres:touba202@localhost:5432/gestion_stock?sslmode=require"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = os.getenv("SECRET_KEY") or "une_cle_secrete_tres_forte_et_unique"
+# --- Base de données Railway ---
+DATABASE_URL = os.getenv("DATABASE_URL")
 
+if DATABASE_URL:
+    # Correction obligatoire pour SQLAlchemy
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://")
+    if DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://")
+else:
+    print("❌ ERREUR : DATABASE_URL est introuvable dans Railway !")
 
-# Configuration pour Flask-Mail
+app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# --- Clé secrète ---
+app.secret_key = os.getenv("SECRET_KEY", "une_cle_secrete_tres_forte_et_unique")
+
+#  Configuration pour Flask-Mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -345,7 +357,7 @@ def supprimer_vente(id):
         recipients=[current_user.email],
         body=f"La vente du produit '{vente.produit.nom}' (quantité : {vente.quantite}) a été supprimée."
     )
-    mail.send(msg)
+    #mail.send(msg)
 
     flash("Vente supprimée avec succès.", "success")
     return redirect(url_for('historique'))
@@ -422,7 +434,7 @@ def modifier_produit(id):
                     recipients=[current_user.email],
                     body=message
                 )
-                mail.send(msg)
+                #mail.send(msg)
             except Exception as e:
                 print("Erreur lors de l'envoi du mail :", e)
                 flash("Erreur lors de l'envoi de l'e-mail de notification.", "warning")
@@ -629,7 +641,7 @@ def supprimer_produit(id):
             recipients=[current_user.email],
             body=f"Produit ({produit.nom}) est supprimé."
         )
-        mail.send(msg)
+        #mail.send(msg)
 
     flash("Produit déplacé dans la corbeille avec succès.", "success")
     return redirect(url_for('index'))
@@ -922,7 +934,7 @@ def supprimer_recu(recu_id):
                     "Ceci est un message automatique de sécurité."
                 )
             )
-            mail.send(msg)
+            #mail.send(msg)
         except Exception as e:
             print("❌ Erreur envoi email suppression reçu :", e)
             flash("⚠️ Erreur lors de l'envoi de l'e-mail de notification.", "warning")
@@ -1560,7 +1572,7 @@ def supprimer_dette(dette_id):
                 f"a été supprimée et déplacée dans la corbeille."
             )
         )
-        mail.send(msg)
+        #mail.send(msg)
 
     flash("Dette déplacée dans la corbeille avec succès.", "success")
     return redirect(url_for('dettes'))
@@ -2007,54 +2019,28 @@ def reactiver_utilisateur(id):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Si déjà connecté, rediriger vers l'accueil
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-
     if request.method == 'POST':
-        # Récupération des champs du formulaire
+        
         nom = request.form.get('nom_utilisateur')
-        email = request.form.get('email')
         mot_de_passe = request.form.get('mot_de_passe')
 
-        utilisateur = None
+        # Vérifier que les champs ne sont pas vides
+        if not nom or not mot_de_passe:
+            flash("Veuillez remplir tous les champs.", "warning")
+            return redirect(url_for('login'))
 
-        # Cherche par email si fourni
-        if email:
-            utilisateur = Utilisateur.query.filter_by(email=email).first()
-        # Sinon cherche par nom_utilisateur
-        elif nom:
-            utilisateur = Utilisateur.query.filter_by(nom_utilisateur=nom).first()
+        # Récupération dans la base
+        utilisateur = Utilisateur.query.filter_by(nom_utilisateur=nom).first()
 
+        # Vérification du mot de passe haché
         if utilisateur and check_password_hash(utilisateur.mot_de_passe, mot_de_passe):
-            # Connexion réussie
             login_user(utilisateur)
-            flash("Connexion réussie !", "success")
-            return redirect(url_for('index'))
-        else:
-            flash("Identifiants invalides.", "danger")
+            return redirect(url_for('dashboard'))  # ta page d'accueil après connexion
 
-    # Affiche le formulaire de connexion
-    return render_template('login.html', app_name='Geytoris')
+        flash("Identifiants invalides.", "danger")
+        return redirect(url_for('login'))
 
-@app.route('/client/<nom_client>/historique')
-@login_required
-def historique_client(nom_client):
-    # Récupérer tous les reçus du client
-    recus = Recu.query.filter(
-        Recu.nom_client == nom_client,
-        Recu.utilisateur_id == current_user.id,
-        Recu.supprime == False
-    ).order_by(Recu.date_creation.desc()).all()
-    
-    # Total dépensé
-    total_depense = sum(r.montant_total for r in recus)
-    
-    return render_template('historique_client.html', 
-        nom_client=nom_client,
-        recus=recus, 
-        total_depense=total_depense
-    )
+    return render_template('login.html', app_name="Geytoris")
 
 @app.route("/telecharger_recu_pdf/<int:recu_id>")
 @login_required
