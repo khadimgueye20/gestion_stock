@@ -2035,7 +2035,9 @@ def login():
         # Vérification du mot de passe haché
         if utilisateur and check_password_hash(utilisateur.mot_de_passe, mot_de_passe):
             login_user(utilisateur)
-            return redirect(url_for('dashboard'))  # ta page d'accueil après connexion
+        return redirect(url_for('index'))
+    
+  # ta page d'accueil après connexion
 
         flash("Identifiants invalides.", "danger")
         return redirect(url_for('login'))
