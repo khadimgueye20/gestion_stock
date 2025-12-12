@@ -101,10 +101,19 @@
     <p>_____________________________</p>
   </div>
 
-  <div class="text-center mt-4 no-print">
-    <a href="{{ url_for('recus') }}" class="btn btn-secondary">⬅️ Retour à l'historique</a>
-  </div>
+<div class="text-center mt-4 no-print d-flex justify-content-center gap-3">
+
+  <a href="{{ url_for('recus') }}" class="btn btn-secondary">
+    ⬅️ Retour à l'historique
+  </a>
+
+  <!-- ✅ NOUVEAU bouton -->
+  <a href="{{ url_for('effectuer_vente') }}" class="btn btn-success">
+    ➕ Effectuer une autre vente
+  </a>
+
 </div>
+
 
 <!-- Impression -->
 <style>
