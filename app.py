@@ -2099,6 +2099,16 @@ def telecharger_recu_pdf(recu_id):
     # 7️⃣ Envoi du fichier à l’utilisateur
     return send_file(filepath, as_attachment=True)
 
+@app.before_request
+def verifier_utilisateur_suspendu():
+    if current_user.is_authenticated:
+        utilisateur = Utilisateur.query.get(current_user.id)
+
+        if utilisateur and utilisateur.est_suspendu:
+            logout_user()
+            flash("Votre compte a été suspendu.", "danger")
+            return redirect(url_for('login'))
+
 
 # Lancement de l'application
 if __name__ == '__main__':
