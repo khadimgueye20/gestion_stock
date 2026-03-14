@@ -2020,24 +2020,29 @@ def reactiver_utilisateur(id):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        
         nom = request.form.get('nom_utilisateur')
         mot_de_passe = request.form.get('mot_de_passe')
 
-        # Vérifier que les champs ne sont pas vides
         if not nom or not mot_de_passe:
             flash("Veuillez remplir tous les champs.", "warning")
             return redirect(url_for('login'))
 
-        # Récupération dans la base
         utilisateur = Utilisateur.query.filter_by(nom_utilisateur=nom).first()
 
-        # Vérification du mot de passe haché
         if utilisateur and check_password_hash(utilisateur.mot_de_passe, mot_de_passe):
+
+            # 🔴 Vérifier si le compte est suspendu
+            if utilisateur.est_suspendu:
+                flash("Votre compte est suspendu. Veuillez contacter l'administration.", "danger")
+                return redirect(url_for('login'))
+
             login_user(utilisateur)
-        return redirect(url_for('index'))
-    
-  # ta page d'accueil après connexion
+
+            # 🔁 Redirection selon le rôle
+            if utilisateur.role == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            else:
+                return redirect(url_for('index'))
 
         flash("Identifiants invalides.", "danger")
         return redirect(url_for('login'))
