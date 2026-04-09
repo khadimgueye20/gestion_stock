@@ -356,14 +356,14 @@
 
       <div class="summary-card">
         <div class="summary-label">Stock concerné</div>
-        <div class="summary-value">{{ produits | sum(attribute='quantite') }}</div>
+        <div class="summary-value">{{ produits | map(attribute='quantite') | map('default', 0) | sum }}</div>
         <div class="summary-sub">unités supprimées</div>
       </div>
 
       <div class="summary-card">
         <div class="summary-label">Valeur estimée</div>
         <div class="summary-value">
-          {{ (produits | sum(attribute='prix_unitaire')) | round(0) }} FCFA
+          {{ (produits | map(attribute='prix_unitaire') | map('default', 0) | sum) | round(0) }} FCFA
         </div>
         <div class="summary-sub">somme des prix unitaires</div>
       </div>
