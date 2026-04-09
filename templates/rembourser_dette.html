@@ -3,78 +3,166 @@
 {% block title %}Rembourser la dette{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2 class="my-4">💰 Rembourser une dette</h2>
+<div class="container-fluid px-0">
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <p><strong>Client :</strong> {{ dette.client_nom }}</p>
-            <p><strong>Téléphone :</strong> {{ dette.client_telephone or "—" }}</p>
-            <p><strong>Montant total :</strong> {{ "{:,.0f}".format(dette.montant_total) }} FCFA</p>
-            <p><strong>Montant remboursé :</strong> {{ "{:,.0f}".format(dette.montant_rembourse) }} FCFA</p>
-            <p><strong>Reste à payer :</strong> 
-                {{ "{:,.0f}".format(dette.montant_total - dette.montant_rembourse) }} FCFA</p>
+    <!-- En-tête -->
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Remboursement de dette</h2>
+        <p class="text-muted mb-0">
+            Effectuez un remboursement et suivez l’évolution de la dette du client.
+        </p>
+    </div>
+
+    <!-- Résumé dette -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body p-4">
+            <div class="row g-4 align-items-center">
+
+                <div class="col-md-4">
+                    <div class="fw-semibold text-muted small">Client</div>
+                    <div class="fw-bold fs-5">{{ dette.client_nom }}</div>
+                    <div class="text-muted small">{{ dette.client_telephone or "—" }}</div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="row g-3 text-center">
+
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-4 bg-light">
+                                <small class="text-muted d-block">Total</small>
+                                <strong>{{ "{:,.0f}".format(dette.montant_total) }} FCFA</strong>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-4 bg-success bg-opacity-10">
+                                <small class="text-muted d-block">Remboursé</small>
+                                <strong class="text-success">
+                                    {{ "{:,.0f}".format(dette.montant_rembourse) }} FCFA
+                                </strong>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-4 bg-danger bg-opacity-10">
+                                <small class="text-muted d-block">Reste à payer</small>
+                                <strong class="text-danger fs-5">
+                                    {{ "{:,.0f}".format(dette.montant_total - dette.montant_rembourse) }} FCFA
+                                </strong>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
-    <form method="POST" id="remboursement-form">
-        <div class="mb-3">
-            <label class="form-label">Montant à rembourser (FCFA)</label>
-            <input type="number" step="0.01" class="form-control" name="montant" required>
+    <!-- Formulaire -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+            <h5 class="fw-bold mb-0">Effectuer un remboursement</h5>
         </div>
-        <button type="submit" class="btn btn-success">Valider le remboursement</button>
-        <a href="{{ url_for('dettes') }}" class="btn btn-secondary">Annuler</a>
-    </form>
 
-    {% if dette.remboursements %}
-    <div class="card mt-5">
-        <div class="card-header">
-            <h5 class="mb-0">📜 Historique des remboursements</h5>
+        <div class="card-body p-4">
+            <form method="POST" id="remboursement-form">
+                <div class="row g-3 align-items-end">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            Montant à rembourser (FCFA)
+                        </label>
+                        <input type="number"
+                               step="0.01"
+                               min="1"
+                               max="{{ dette.montant_total - dette.montant_rembourse }}"
+                               class="form-control form-control-lg"
+                               name="montant"
+                               required>
+                    </div>
+
+                    <div class="col-md-6 d-flex gap-2">
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-check-circle-fill me-2"></i>Valider
+                        </button>
+
+                        <a href="{{ url_for('dettes') }}" class="btn btn-outline-secondary">
+                            Annuler
+                        </a>
+                    </div>
+
+                </div>
+            </form>
         </div>
-        <div class="card-body p-0">
-            <table class="table table-sm table-bordered text-center mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Date</th>
-                        <th>Montant (FCFA)</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in dette.remboursements %}
-                    <tr>
-                        <td>{{ r.date_remboursement.strftime("%d/%m/%Y %H:%M") }}</td>
-                        <td>{{ "{:,.0f}".format(r.montant) }}</td>
-                        <td>
-                            <a href="{{ url_for('remboursement_pdf', remboursement_id=r.id) }}" class="btn btn-sm btn-outline-dark" target="_blank">
-                                📄 Reçu PDF
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    </div>
+
+    <!-- Historique -->
+    {% if dette.remboursements %}
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-transparent border-0 pt-4 px-4">
+            <h5 class="fw-bold mb-0">Historique des remboursements</h5>
+        </div>
+
+        <div class="card-body p-3 p-md-4">
+            <div class="table-responsive">
+                <table class="table align-middle text-center mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Montant</th>
+                            <th>Reçu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in dette.remboursements %}
+                        <tr>
+                            <td>{{ r.date_remboursement.strftime("%d/%m/%Y %H:%M") }}</td>
+                            <td class="fw-semibold text-success">
+                                {{ "{:,.0f}".format(r.montant) }} FCFA
+                            </td>
+                            <td>
+                                <a href="{{ url_for('remboursement_pdf', remboursement_id=r.id) }}"
+                                   class="btn btn-sm btn-outline-dark"
+                                   target="_blank">
+                                    <i class="bi bi-file-earmark-pdf-fill me-1"></i>PDF
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
     {% endif %}
-</div>
 
-<!-- SWEETALERT -->
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-  document.getElementById('remboursement-form').addEventListener('submit', function(e) {
+document.getElementById('remboursement-form').addEventListener('submit', function(e) {
     e.preventDefault();
+
+    const montant = document.querySelector('input[name="montant"]').value;
+
     Swal.fire({
-      title: 'Valider ce remboursement ?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Oui',
-      cancelButtonText: 'Annuler'
+        title: 'Confirmer le remboursement ?',
+        text: `Montant : ${parseInt(montant).toLocaleString()} FCFA`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Oui, valider',
+        cancelButtonText: 'Annuler',
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#6c757d'
     }).then((result) => {
-      if (result.isConfirmed) {
-        this.submit();
-      }
+        if (result.isConfirmed) {
+            this.submit();
+        }
     });
-  });
+});
 </script>
 {% endblock %}

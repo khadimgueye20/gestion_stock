@@ -1,171 +1,703 @@
 {% extends "base.html" %}
 
+{% block title %}Statistiques - Geytoris{% endblock %}
+
+{% block head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+
+<style>
+  .stats-wrapper {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 1.2rem 0 0.5rem;
+  }
+
+  .stats-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.8rem;
+  }
+
+  .stats-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .stats-logo-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 0.45rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stats-logo-box img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+
+  .stats-title-block p {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 4px;
+  }
+
+  .stats-title-block h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.2rem;
+  }
+
+  .stats-title-block h1 span {
+    color: #059669;
+  }
+
+  .stats-title-block .subtitle {
+    color: #6b7280;
+    font-size: 0.94rem;
+    margin: 0;
+  }
+
+  .stats-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.18s ease;
+  }
+
+  .btn-action:hover {
+    background: #f9fafb;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    color: #111827;
+  }
+
+  .stats-grid,
+  .stats-grid-bottom {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .stats-grid {
+    margin-bottom: 18px;
+  }
+
+  .kpi-card {
+    border-radius: 22px;
+    padding: 1.55rem 1.4rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 178px;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    height: 1px;
+    background: rgba(255,255,255,0.28);
+  }
+
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    bottom: -38px;
+    right: -38px;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+    pointer-events: none;
+  }
+
+  .kpi-icon-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    background: rgba(255,255,255,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.72);
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 26px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .kpi-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.62);
+    margin-top: 6px;
+  }
+
+  .badge-evo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    margin-top: 8px;
+    width: fit-content;
+  }
+
+  .card-green   { background: linear-gradient(140deg, #059669 0%, #047857 100%); }
+  .card-emerald { background: linear-gradient(140deg, #10b981 0%, #059669 100%); }
+  .card-rose    { background: linear-gradient(140deg, #e11d48 0%, #be123c 100%); }
+  .card-blue    { background: linear-gradient(140deg, #2563eb 0%, #1d4ed8 100%); }
+  .card-slate   { background: linear-gradient(140deg, #475569 0%, #334155 100%); }
+  .card-cyan    { background: linear-gradient(140deg, #0891b2 0%, #0e7490 100%); }
+  .card-violet  { background: linear-gradient(140deg, #7c3aed 0%, #6d28d9 100%); }
+
+  .stock-card,
+  .client-card,
+  .vente-card {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .stock-card,
+  .client-card {
+    padding: 1.45rem;
+  }
+
+  .stock-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .stock-warn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    background: #fef3c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .stock-card-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b7280;
+  }
+
+  .stock-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 13px;
+    color: #374151;
+    font-weight: 500;
+  }
+
+  .stock-row:last-child {
+    border-bottom: none;
+  }
+
+  .badge-qty {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+
+  .badge-zero {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .badge-low {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .client-card {
+    position: relative;
+  }
+
+  .client-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #059669, #047857);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+    margin-bottom: 0.9rem;
+  }
+
+  .trophy {
+    position: absolute;
+    top: 1.45rem;
+    right: 1.45rem;
+    font-size: 20px;
+  }
+
+  .client-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 4px;
+  }
+
+  .client-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 2px;
+  }
+
+  .client-meta {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 10px;
+  }
+
+  .client-amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 19px;
+    font-weight: 600;
+    color: #059669;
+    margin-bottom: 12px;
+  }
+
+  .btn-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-decoration: none;
+    padding: 7px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f9fafb;
+    transition: background 0.15s ease;
+  }
+
+  .btn-link:hover {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  .vente-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .vente-card {
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+  }
+
+  .vente-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .vente-icon-up {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .vente-icon-down {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  .vente-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    margin-bottom: 4px;
+  }
+
+  .vente-amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 17px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 3px;
+  }
+
+  .vente-ref {
+    font-size: 11px;
+    color: #9ca3af;
+    font-family: 'JetBrains Mono', monospace;
+    text-decoration: none;
+  }
+
+  .vente-ref:hover {
+    color: #6b7280;
+  }
+
+  /* Dark mode */
+  html.dark-mode .stats-logo-box {
+    background: #111827 !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  }
+
+  html.dark-mode .stats-title-block p {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .stats-title-block h1 {
+    color: #f8fafc !important;
+  }
+
+  html.dark-mode .stats-title-block h1 span {
+    color: #34d399 !important;
+  }
+
+  html.dark-mode .stats-title-block .subtitle {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .btn-action {
+    background: #111827 !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+    box-shadow: none !important;
+  }
+
+  html.dark-mode .btn-action:hover {
+    background: #1f2937 !important;
+    color: #ffffff !important;
+  }
+
+  html.dark-mode .stock-card,
+  html.dark-mode .client-card,
+  html.dark-mode .vente-card {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.22) !important;
+  }
+
+  html.dark-mode .stock-card-title,
+  html.dark-mode .client-label,
+  html.dark-mode .client-meta,
+  html.dark-mode .vente-label,
+  html.dark-mode .vente-ref {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .stock-row {
+    color: #e5e7eb !important;
+    border-bottom-color: #1f2937 !important;
+  }
+
+  html.dark-mode .client-name,
+  html.dark-mode .vente-amount {
+    color: #f8fafc !important;
+  }
+
+  html.dark-mode .client-amount {
+    color: #34d399 !important;
+  }
+
+  html.dark-mode .btn-link {
+    background: #1f2937 !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+  }
+
+  html.dark-mode .btn-link:hover {
+    background: #273549 !important;
+    color: #ffffff !important;
+  }
+
+  html.dark-mode .vente-ref:hover {
+    color: #cbd5e1 !important;
+  }
+
+  html.dark-mode .stock-warn-icon {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #fbbf24 !important;
+  }
+
+  html.dark-mode .badge-zero {
+    background: rgba(239, 68, 68, 0.18) !important;
+    color: #fca5a5 !important;
+  }
+
+  html.dark-mode .badge-low {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #fcd34d !important;
+  }
+
+  html.dark-mode .vente-icon-down {
+    background: #1f2937 !important;
+    color: #cbd5e1 !important;
+  }
+
+  @media (max-width: 992px) {
+    .stats-grid,
+    .stats-grid-bottom {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .stats-topbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .stats-actions {
+      width: 100%;
+    }
+
+    .btn-action {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .stats-grid,
+    .stats-grid-bottom {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-wrapper {
+      padding: 0.4rem 0 0.3rem;
+    }
+
+    .stats-title-block h1 {
+      font-size: 1.3rem;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center fw-bold mb-5 text-uppercase text-primary display-6">
-    📊 Statistiques du mois de {{ mois|capitalize }}
-  </h2>
+<div class="stats-wrapper">
 
-  <div class="text-end mb-4">
-    <a href="{{ url_for('rapport_pdf') }}" class="btn btn-outline-secondary">
-      📄 Télécharger le rapport PDF
-    </a>
-    <a href="{{ url_for('archiver_stats') }}" class="btn btn-outline-primary">
-      💾 Archiver ce mois
-    </a>
-    <a href="{{ url_for('archives') }}" class="btn btn-outline-dark">
-      📂 Voir les archives
-    </a>
-  </div>
+  <!-- Header -->
+  <div class="stats-topbar">
+    <div class="stats-brand">
+      <div class="stats-logo-box">
+        <img src="{{ url_for('static', filename='logo_geytoris.png') }}" alt="Logo Geytoris">
+      </div>
 
-  <div class="row g-4">
-<!-- Chiffre d'affaires - VERT -->
-<div class="col-md-4">
-  <div class="card shadow-lg rounded-4 border-0 bg-success text-white">
-    <div class="card-body text-center">
-      <i class="bi bi-cash-coin display-4 mb-3"></i>
-      <h5 class="card-title">Chiffre d'affaires</h5>
-      <p class="fs-3 fw-bold">{{ total_ventes | round(0) }} F CFA</p>
-    </div>
-  </div>
-</div>
-
-<!-- Évolution - Dynamique -->
-<div class="col-md-4">
-  <div class="card shadow-lg rounded-4 border-0 text-white" style="background-color: {{ '#28a745' if evolution >= 0 else '#dc3545' }};">
-    <div class="card-body text-center">
-      <i class="bi bi-graph-{{ 'up' if evolution >= 0 else 'down' }}-arrow display-4 mb-3"></i>
-      <h5 class="card-title">Évolution vs Mois Dernier</h5>
-      <p class="fs-3 fw-bold">{{ evolution | round(1) }} %</p>
-      <small>Mois dernier : {{ total_ventes_prev | round(0) }} F CFA</small>
-    </div>
-  </div>
-</div>
-
-<!-- Nombre de ventes - BLEU -->
-<div class="col-md-4">
-  <div class="card shadow-lg rounded-4 border-0 bg-primary text-white">
-    <div class="card-body text-center">
-      <i class="bi bi-cart-check display-4 mb-3"></i>
-      <h5 class="card-title">Nombre de ventes</h5>
-      <p class="fs-3 fw-bold">{{ nb_ventes }}</p>
-    </div>
-  </div>
-</div>
-
-<!-- Coût d'achat - GRIS -->
-<div class="col-md-4">
-  <div class="card shadow-lg rounded-4 border-0 bg-secondary text-white">
-    <div class="card-body text-center">
-      <i class="bi bi-basket3-fill display-4 mb-3"></i>
-      <h5 class="card-title">Coût d'achat des produits vendus</h5>
-      <p class="fs-3 fw-bold">{{ total_achats | round(0) }} F CFA</p>
-    </div>
-  </div>
-</div>
-
-<!-- Bénéfice - CYAN -->
-<div class="col-md-4">
-  <div class="card shadow-lg rounded-4 border-0 bg-info text-white">
-    <div class="card-body text-center">
-      <i class="bi bi-graph-up-arrow display-4 mb-3"></i>
-      <h5 class="card-title">Bénéfice</h5>
-      <p class="fs-3 fw-bold">{{ benefice_total | round(0) }} F CFA</p>
-    </div>
-  </div>
-</div>
-
-<!-- Marge brute - VIOLET -->
-<div class="col-md-4">
-  <div class="card shadow-lg rounded-4 border-0 text-white" style="background-color: #6f42c1;">
-    <div class="card-body text-center">
-      <i class="bi bi-percent display-4 mb-3"></i>
-      <h5 class="card-title">Marge brute</h5>
-      <p class="fs-3 fw-bold">{{ marge_pourcentage | round(2) }} %</p>
-    </div>
-  </div>
-</div>
-
-<!-- Stock faible - JAUNE -->
-{% if stock_faible %}
-<div class="col-md-4">
-  <div class="card shadow-lg rounded-4 border-0 bg-warning-subtle">
-    <div class="card-body">
-      <h5 class="card-title text-center text-warning fw-bold mb-3">⚠️ Stock faible</h5>
-      <div class="table-responsive">
-        <table class="table table-sm table-bordered table-hover text-center mb-0">
-          <thead class="table-warning">
-            <tr>
-              <th>Produit</th>
-              <th>Stock</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for produit in stock_faible %}
-            <tr>
-              <td>{{ produit.nom }}</td>
-              <td>
-                <span class="badge {{ 'bg-danger' if produit.quantite == 0 else 'bg-warning text-dark' }}">
-                  {{ produit.quantite }}
-                </span>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="stats-title-block">
+        <p>Tableau de bord</p>
+        <h1>Statistiques — <span>{{ mois | capitalize }}</span></h1>
+        <p class="subtitle">Vue d’ensemble des performances commerciales du mois.</p>
       </div>
     </div>
-  </div>
-</div>
-{% endif %}
 
-{% if meilleur_client %}
-<div class="col-md-4">
-  <div class="card shadow-lg rounded-4 border-0 text-white" style="background-color: #fd7e14;">
-    <div class="card-body text-center">
-      <i class="bi bi-trophy-fill display-4 mb-3"></i>
-      <h5 class="card-title">Meilleur Client</h5>
-      <h6 class="fw-bold">{{ meilleur_client.nom_client }}</h6>
-      <p class="fs-3 fw-bold mb-2">{{ meilleur_client.total_depense | round(0) }} F CFA</p>
-      <a href="{{ url_for('historique_stats') }}" class="btn btn-light btn-sm">
-
-         Voir historique
+    <div class="stats-actions">
+      <a href="{{ url_for('rapport_pdf') }}" class="btn-action">
+        <span>📄</span> Rapport PDF
+      </a>
+      <a href="{{ url_for('archiver_stats') }}" class="btn-action">
+        <span>💾</span> Archiver ce mois
+      </a>
+      <a href="{{ url_for('archives') }}" class="btn-action">
+        <span>📂</span> Voir les archives
       </a>
     </div>
   </div>
-</div>
-{% endif %}
-<!-- Meilleure vente - VERT FONCÉ -->
-{% if meilleure_vente %}
-<div class="col-md-4">
-  <div class="card shadow-lg rounded-4 border-0 text-white" style="background-color: #198754;">
-    <div class="card-body text-center">
-      <i class="bi bi-arrow-up-circle-fill display-4 mb-3"></i>
-      <h5 class="card-title">Meilleure Vente</h5>
-      <p class="fs-3 fw-bold">{{ meilleure_vente.montant_total | round(0) }} F CFA</p>
-      <a href="{{ url_for('voir_recu', recu_id=meilleure_vente.id) }}" class="btn btn-light btn-sm">
-        {{ meilleure_vente.reference }}
-      </a>
-    </div>
-  </div>
-</div>
-{% endif %}
 
-<!-- Vente la plus basse - GRIS CLAIR -->
-{% if vente_plus_basse %}
-<div class="col-md-4">
-  <div class="card shadow-lg rounded-4 border-0 bg-light">
-    <div class="card-body text-center">
-      <i class="bi bi-arrow-down-circle-fill display-4 mb-3 text-secondary"></i>
-      <h5 class="card-title">Vente la Plus Basse</h5>
-      <p class="fs-3 fw-bold">{{ vente_plus_basse.montant_total | round(0) }} F CFA</p>
-      <a href="{{ url_for('voir_recu', recu_id=vente_plus_basse.id) }}" class="btn btn-secondary btn-sm">
-        {{ vente_plus_basse.reference }}
-      </a>
+  <!-- KPIs -->
+  <div class="stats-grid">
+
+    <div class="kpi-card card-green">
+      <div class="kpi-icon-wrap">💰</div>
+      <div class="kpi-label">Chiffre d'affaires</div>
+      <div class="kpi-value">{{ total_ventes | round(0) | int }} F</div>
+      <div class="kpi-sub">CFA · ce mois</div>
     </div>
+
+    <div class="kpi-card {{ 'card-emerald' if evolution >= 0 else 'card-rose' }}">
+      <div class="kpi-icon-wrap">{{ '📈' if evolution >= 0 else '📉' }}</div>
+      <div class="kpi-label">Évolution</div>
+      <div class="kpi-value">{{ ('+' if evolution >= 0 else '') }}{{ evolution | round(1) }} %</div>
+      <div class="badge-evo">{{ '↑ En hausse' if evolution >= 0 else '↓ En baisse' }}</div>
+      <div class="kpi-sub" style="margin-top:8px;">Mois dernier : {{ total_ventes_prev | round(0) | int }} F CFA</div>
+    </div>
+
+    <div class="kpi-card card-blue">
+      <div class="kpi-icon-wrap">🛒</div>
+      <div class="kpi-label">Nombre de ventes</div>
+      <div class="kpi-value">{{ nb_ventes }}</div>
+      <div class="kpi-sub">transactions ce mois</div>
+    </div>
+
+    <div class="kpi-card card-slate">
+      <div class="kpi-icon-wrap">📦</div>
+      <div class="kpi-label">Coût d'achat</div>
+      <div class="kpi-value">{{ total_achats | round(0) | int }} F</div>
+      <div class="kpi-sub">CFA · produits vendus</div>
+    </div>
+
+    <div class="kpi-card card-cyan">
+      <div class="kpi-icon-wrap">📊</div>
+      <div class="kpi-label">Bénéfice net</div>
+      <div class="kpi-value">{{ benefice_total | round(0) | int }} F</div>
+      <div class="kpi-sub">CFA · ce mois</div>
+    </div>
+
+    <div class="kpi-card card-violet">
+      <div class="kpi-icon-wrap" style="font-family:'JetBrains Mono', monospace; font-size:15px; font-weight:700; color:#fff;">%</div>
+      <div class="kpi-label">Marge brute</div>
+      <div class="kpi-value">{{ marge_pourcentage | round(2) }} %</div>
+      <div class="kpi-sub">sur les ventes totales</div>
+    </div>
+
   </div>
-</div>
-{% endif %}
+
+  <!-- Blocs secondaires -->
+  <div class="stats-grid-bottom">
+
+    {% if stock_faible %}
+    <div class="stock-card">
+      <div class="stock-card-header">
+        <div class="stock-warn-icon">⚠️</div>
+        <div class="stock-card-title">Stock faible</div>
+      </div>
+
+      {% for produit in stock_faible %}
+      <div class="stock-row">
+        <span>{{ produit.nom }}</span>
+        <span class="badge-qty {{ 'badge-zero' if produit.quantite == 0 else 'badge-low' }}">
+          {{ produit.quantite }}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if meilleur_client %}
+    <div class="client-card">
+      <div class="trophy">🏆</div>
+      <div class="client-avatar">{{ meilleur_client.nom_client[:2] | upper }}</div>
+      <div class="client-label">Meilleur client</div>
+      <div class="client-name">{{ meilleur_client.nom_client }}</div>
+      <div class="client-meta">{{ meilleur_client.nombre_achats }} achats ce mois</div>
+      <div class="client-amount">{{ meilleur_client.total_depense | round(0) | int }} F CFA</div>
+      <a href="{{ url_for('historique_stats') }}" class="btn-link">Voir historique →</a>
+    </div>
+    {% endif %}
+
+    <div class="vente-stack">
+      {% if meilleure_vente %}
+      <div class="vente-card">
+        <div class="vente-icon vente-icon-up">↑</div>
+        <div>
+          <div class="vente-label">Meilleure vente</div>
+          <div class="vente-amount">{{ meilleure_vente.montant_total | round(0) | int }} F CFA</div>
+          <a href="{{ url_for('voir_recu', recu_id=meilleure_vente.id) }}" class="vente-ref">
+            {{ meilleure_vente.reference }}
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if vente_plus_basse %}
+      <div class="vente-card">
+        <div class="vente-icon vente-icon-down">↓</div>
+        <div>
+          <div class="vente-label">Vente la plus basse</div>
+          <div class="vente-amount">{{ vente_plus_basse.montant_total | round(0) | int }} F CFA</div>
+          <a href="{{ url_for('voir_recu', recu_id=vente_plus_basse.id) }}" class="vente-ref">
+            {{ vente_plus_basse.reference }}
+          </a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
 
   </div>
 </div>

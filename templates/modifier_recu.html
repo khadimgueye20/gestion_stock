@@ -2,97 +2,222 @@
 {% block title %}Modifier le reçu {{ recu.reference }}{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-  <h3 class="mb-3">Modifier le reçu #{{ recu.reference }}</h3>
+<div class="container-fluid px-0">
+
+  <!-- En-tête -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+    <div class="card-body p-4 p-lg-5">
+      <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
+        <div class="d-flex align-items-start gap-3">
+          <div class="rounded-4 d-flex align-items-center justify-content-center flex-shrink-0"
+               style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(13,110,253,0.15), rgba(111,66,193,0.12));">
+            <i class="bi bi-receipt-cutoff fs-3 text-primary"></i>
+          </div>
+          <div>
+            <h2 class="fw-bold mb-1">Modifier le reçu</h2>
+            <p class="text-muted mb-0">
+              Référence : <span class="fw-semibold text-dark">#{{ recu.reference }}</span>
+            </p>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('voir_recu', recu_id=recu.id) }}" class="btn btn-light border rounded-pill px-4">
+            <i class="bi bi-arrow-left me-2"></i>Retour au reçu
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <form method="POST" action="{{ url_for('modifier_recu', recu_id=recu.id) }}">
+
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
+          <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm rounded-4 border-0 mb-4" role="alert">
+            <div class="d-flex align-items-center">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              <div>{{ message }}</div>
+            </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
-    <div class="row g-3 mb-3">
-      <div class="col-md-4">
-        <label class="form-label">Nom du client</label>
-        <input type="text" class="form-control" name="nom_client" value="{{ recu.nom_client or 'Client' }}">
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Téléphone</label>
-        <input type="text" class="form-control" name="telephone_client" value="{{ recu.telephone_client or '' }}">
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Mode de paiement</label>
-        <select class="form-select" name="mode_paiement" id="mode_paiement" required>
-          <option value="" disabled {% if not recu.mode_paiement %}selected{% endif %}>-- Sélectionner --</option>
-          <option value="Especes" {% if recu.mode_paiement == 'Especes' %}selected{% endif %}>Espèce</option>
-          <option value="Wave" {% if recu.mode_paiement == 'Wave' %}selected{% endif %}>Wave</option>
-          <option value="Orange Money" {% if recu.mode_paiement == 'Orange Money' %}selected{% endif %}>Orange Money</option>
-          <option value="Dette" {% if recu.mode_paiement == 'Dette' %}selected{% endif %}>Dette (crédit)</option>
-        </select>
-        <div id="note_dette" class="form-text" {% if recu.mode_paiement != 'Dette' %}style="display:none"{% endif %}>
-          Mode <strong>Dette</strong> : vous pouvez saisir un paiement partiel (ou 0). Le reste sera enregistré en dette.
+    <!-- Informations générales -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-header bg-white border-0 px-4 pt-4 pb-0">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-3 p-2" style="background-color: rgba(13,110,253,0.10);">
+            <i class="bi bi-person-lines-fill fs-5 text-primary"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1">Informations du client et paiement</h5>
+            <p class="text-muted small mb-0">
+              Modifiez les informations générales liées à ce reçu.
+            </p>
+          </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <label class="form-label">Montant payé</label>
-        <input type="number" step="0.01" min="0" class="form-control" id="montant_paye" name="montant_paye" value="{{ recu.montant_paye or 0 }}">
+
+      <div class="card-body p-4">
+        <div class="row g-4">
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Nom du client</label>
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-light border-end-0">
+                <i class="bi bi-person-fill text-primary"></i>
+              </span>
+              <input type="text" class="form-control border-start-0" name="nom_client" value="{{ recu.nom_client or 'Client' }}">
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Téléphone</label>
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-light border-end-0">
+                <i class="bi bi-telephone-fill text-success"></i>
+              </span>
+              <input type="text" class="form-control border-start-0" name="telephone_client" value="{{ recu.telephone_client or '' }}">
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Mode de paiement</label>
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-light border-end-0">
+                <i class="bi bi-wallet2 text-warning"></i>
+              </span>
+              <select class="form-select border-start-0" name="mode_paiement" id="mode_paiement" required>
+                <option value="" disabled {% if not recu.mode_paiement %}selected{% endif %}>-- Sélectionner --</option>
+                <option value="Especes" {% if recu.mode_paiement == 'Especes' %}selected{% endif %}>Espèce</option>
+                <option value="Wave" {% if recu.mode_paiement == 'Wave' %}selected{% endif %}>Wave</option>
+                <option value="Orange Money" {% if recu.mode_paiement == 'Orange Money' %}selected{% endif %}>Orange Money</option>
+                <option value="Dette" {% if recu.mode_paiement == 'Dette' %}selected{% endif %}>Dette (crédit)</option>
+              </select>
+            </div>
+            <div id="note_dette" class="form-text mt-2" {% if recu.mode_paiement != 'Dette' %}style="display:none"{% endif %}>
+              <span class="badge bg-warning text-dark me-2">Dette</span>
+              Vous pouvez saisir un paiement partiel ou 0. Le reste sera enregistré comme dette.
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">Montant payé</label>
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-light border-end-0">
+                <i class="bi bi-cash-coin text-success"></i>
+              </span>
+              <input type="number" step="0.01" min="0" class="form-control border-start-0" id="montant_paye" name="montant_paye" value="{{ recu.montant_paye or 0 }}">
+              <span class="input-group-text">FCFA</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="table-responsive">
-      <table class="table table-striped align-middle" id="tableLignes">
-        <thead class="table-light">
-          <tr>
-            <th>Produit</th>
-            <th>Stock actuel</th>
-            <th>Prix appliqué</th>
-            <th>Quantité</th>
-            <th>Sous-total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for ligne in lignes %}
-          {% set prod = produits.get(ligne.produit_id) %}
-          <tr data-ligne="{{ ligne.id }}">
-            <td>{{ prod.nom if prod else ('#' ~ ligne.produit_id) }}</td>
-            <td>{{ prod.quantite if prod else '—' }}</td>
-            <td style="max-width: 160px">
-              <input type="number" step="0.01" min="0" class="form-control form-control-sm prix-ligne"
-                     name="prix_{{ ligne.id }}" value="{{ ligne.prix_unitaire }}">
-            </td>
-            <td style="max-width: 130px">
-              <input type="number" min="0" class="form-control form-control-sm qte-ligne"
-                     name="quantite_{{ ligne.id }}" value="{{ ligne.quantite }}">
-            </td>
-            <td>
-              <span class="sous-total">{{ (ligne.quantite * ligne.prix_unitaire)|round(2) }}</span> FCFA
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-        <tfoot>
-          <tr>
-            <th colspan="4" class="text-end">Total recalculé :</th>
-            <th><span id="total_recalcule">0</span> FCFA</th>
-          </tr>
-        </tfoot>
-      </table>
+    <!-- Lignes du reçu -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-header bg-white border-0 px-4 pt-4 pb-0">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-3 p-2" style="background-color: rgba(25,135,84,0.10);">
+            <i class="bi bi-cart-check fs-5 text-success"></i>
+          </div>
+          <div>
+            <h5 class="fw-bold mb-1">Produits du reçu</h5>
+            <p class="text-muted small mb-0">
+              Ajustez les prix et quantités. Les sous-totaux et le total seront recalculés automatiquement.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body p-4">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0" id="tableLignes">
+            <thead style="background-color: #f8f9fa;">
+              <tr>
+                <th class="fw-semibold">Produit</th>
+                <th class="fw-semibold">Stock actuel</th>
+                <th class="fw-semibold">Prix appliqué</th>
+                <th class="fw-semibold">Quantité</th>
+                <th class="fw-semibold">Sous-total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ligne in lignes %}
+              {% set prod = produits.get(ligne.produit_id) %}
+              <tr data-ligne="{{ ligne.id }}">
+                <td>
+                  <div class="fw-semibold text-dark">
+                    {{ prod.nom if prod else ('#' ~ ligne.produit_id) }}
+                  </div>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border px-3 py-2">
+                    {{ prod.quantite if prod else '—' }}
+                  </span>
+                </td>
+                <td style="max-width: 170px;">
+                  <div class="input-group input-group-sm">
+                    <input type="number" step="0.01" min="0" class="form-control prix-ligne"
+                           name="prix_{{ ligne.id }}" value="{{ ligne.prix_unitaire }}">
+                    <span class="input-group-text">FCFA</span>
+                  </div>
+                </td>
+                <td style="max-width: 140px;">
+                  <input type="number" min="0" class="form-control form-control-sm qte-ligne"
+                         name="quantite_{{ ligne.id }}" value="{{ ligne.quantite }}">
+                </td>
+                <td>
+                  <span class="fw-bold text-primary sous-total">
+                    {{ (ligne.quantite * ligne.prix_unitaire)|round(2) }}
+                  </span>
+                  <span class="text-muted">FCFA</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="4" class="text-end pt-4">Total recalculé :</th>
+                <th class="pt-4">
+                  <span id="total_recalcule" class="fw-bold fs-5 text-success">0</span>
+                  <span class="text-muted">FCFA</span>
+                </th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
     </div>
 
-    <div class="mt-3 d-flex gap-2">
-      <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-      <a href="{{ url_for('voir_recu', recu_id=recu.id) }}" class="btn btn-outline-secondary">Annuler</a>
+    <!-- Résumé et actions -->
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4 d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
+        <div>
+          <h6 class="fw-bold mb-1">Validation des modifications</h6>
+          <p class="text-muted small mb-0">
+            Vérifiez les informations du client, le mode de paiement et les lignes du reçu avant d’enregistrer.
+          </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('voir_recu', recu_id=recu.id) }}" class="btn btn-outline-secondary rounded-pill px-4">
+            Annuler
+          </a>
+          <button type="submit" class="btn btn-primary rounded-pill px-4">
+            <i class="bi bi-save2-fill me-2"></i>Enregistrer les modifications
+          </button>
+        </div>
+      </div>
     </div>
+
   </form>
 </div>
 
-<!-- Recalcul automatique -->
 <script>
 (function() {
   const table = document.getElementById('tableLignes');
@@ -127,7 +252,6 @@
     });
     totalElt.textContent = formatFCFA(total);
 
-    // Si le mode n'est pas "Dette", on aligne le montant payé sur le total
     if (modeSelect && modeSelect.value !== 'Dette') {
       montantPayeInput.value = total.toFixed(2);
     }
@@ -137,17 +261,16 @@
     if (!modeSelect) return;
     const isDette = modeSelect.value === 'Dette';
     if (noteDette) noteDette.style.display = isDette ? 'block' : 'none';
+
     if (!isDette) {
-      // réaligne sur le total si non Dette
       const total = Array.from(table.querySelectorAll('tbody tr'))
         .map(recalcRow)
-        .reduce((a,b)=>a+b,0);
+        .reduce((a, b) => a + b, 0);
       totalElt.textContent = formatFCFA(total);
       montantPayeInput.value = total.toFixed(2);
     }
   }
 
-  // Bind
   table.addEventListener('input', function(e) {
     if (e.target.matches('.prix-ligne, .qte-ligne')) {
       recalcAll();
@@ -156,7 +279,6 @@
 
   if (modeSelect) modeSelect.addEventListener('change', onModeChange);
 
-  // Init au chargement
   window.addEventListener('DOMContentLoaded', function() {
     recalcAll();
     onModeChange();

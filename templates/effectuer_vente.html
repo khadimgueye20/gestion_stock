@@ -2,123 +2,194 @@
 {% block title %}Effectuer une vente{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-  <h2 class="mb-3">Effectuer une vente</h2>
+<div class="container-fluid px-0">
+
+  <!-- En-tête -->
+  <div class="mb-4">
+    <h2 class="fw-bold mb-1">Nouvelle vente</h2>
+    <p class="text-muted mb-0">Sélectionnez les produits, définissez les quantités et validez la transaction.</p>
+  </div>
 
   <form method="POST" action="{{ url_for('effectuer_vente') }}">
-    <!-- Messages flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
 
-    <!-- Barre de recherche -->
-    <input type="text" id="searchProduit" class="form-control mb-3"
-           placeholder="🔍 Rechercher un produit (nom, description, stock)…">
-
-    <!-- Tableau produits -->
-    <div class="table-responsive">
-      <table class="table table-striped align-middle" id="tableProduits">
-        <thead class="table-light">
-          <tr>
-            <th>Produit</th>
-            <th>Description</th>
-            <th>Prix de vente</th>
-            <th>Prix appliqué</th>
-            <th>Stock</th>
-            <th>Quantité</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for produit in produits %}
-          <tr>
-            <td>{{ produit.nom }}</td>
-            <td>{{ produit.description or "—" }}</td>
-            <td>{{ "{:,.0f}".format(produit.prix_vente or 0) }} FCFA</td>
-            <td style="max-width: 180px">
-              <input type="number"
-                     class="form-control form-control-sm prix-produit"
-                     name="prix_{{ produit.id }}"
-                     step="0.01"
-                     min="0"
-                     value="{{ produit.prix_vente or 0 }}">
-            </td>
-            <td>{{ produit.quantite }}</td>
-            <td style="max-width: 140px">
-              <input type="number"
-                     class="form-control form-control-sm quantite-produit"
-                     name="quantite_{{ produit.id }}"
-                     placeholder="0"
-                     min="0"
-                     max="{{ produit.quantite }}">
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Totaux -->
-    <div class="row g-3 mt-2">
-      <div class="col-md-6">
-        <label class="form-label">Montant total</label>
-        <input type="text" class="form-control" id="montant_total_affiche" readonly>
-      </div>
-      <div class="col-md-6">
-        <label for="montant_paye" class="form-label">Montant payé</label>
-        <input type="number" step="0.01" min="0" class="form-control" id="montant_paye" name="montant_paye" placeholder="0">
-        <div id="note_dette" class="form-text" style="display:none;">
-          Mode <strong>Dette</strong> : vous pouvez saisir un paiement partiel (ou 0). Le reste sera enregistré en dette.
+    <!-- Recherche -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-body">
+        <label class="form-label fw-semibold">Rechercher un produit</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" id="searchProduit" class="form-control"
+                 placeholder="Nom, description ou stock...">
         </div>
       </div>
     </div>
 
-  
-    <!-- Infos client -->
-    <div class="row g-3 mt-3">
-      <div class="col-md-6">
-        <label for="nom_client" class="form-label">Nom du client </label>
-        <input type="text" class="form-control" id="nom_client" name="nom_client" placeholder="Client">
+    <!-- Produits -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-header bg-transparent border-0 pt-4 px-4">
+        <h5 class="fw-bold mb-0">Produits disponibles</h5>
       </div>
-      <div class="col-md-6">
-        <label for="telephone_client" class="form-label">Téléphone du client </label>
-        <input type="text" class="form-control" id="telephone_client" name="telephone_client" placeholder="77 123 45 67">
-      </div>
-      <div class="col-md-6">
-        <label for="mode_paiement" class="form-label">Mode de paiement</label>
-        <select class="form-select" id="mode_paiement" name="mode_paiement" required>
-          <option value="" selected disabled>-- Sélectionner --</option>
-          <option value="Especes">Espèce</option>
-          <option value="Wave">Wave</option>
-          <option value="Orange Money">Orange Money</option>
-          <option value="Dette">Dette (crédit)</option>
-        </select>
+
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0" id="tableProduits">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Prix</th>
+                <th>Prix appliqué</th>
+                <th>Stock</th>
+                <th>Quantité</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for produit in produits %}
+              <tr>
+                <td>
+                  <strong>{{ produit.nom }}</strong><br>
+                  <small class="text-muted">{{ produit.description or "—" }}</small>
+                </td>
+
+                <td class="fw-semibold text-primary">
+                  {{ "{:,.0f}".format(produit.prix_vente or 0) }} FCFA
+                </td>
+
+                <td style="max-width: 140px">
+                  <input type="number"
+                         class="form-control form-control-sm prix-produit"
+                         name="prix_{{ produit.id }}"
+                         step="0.01"
+                         min="0"
+                         value="{{ produit.prix_vente or 0 }}">
+                </td>
+
+                <td>
+                  <span class="badge bg-light text-dark border">
+                    {{ produit.quantite }}
+                  </span>
+                </td>
+
+                <td style="max-width: 120px">
+                  <input type="number"
+                         class="form-control form-control-sm quantite-produit"
+                         name="quantite_{{ produit.id }}"
+                         min="0"
+                         max="{{ produit.quantite }}"
+                         placeholder="0">
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <div class="mt-4 d-flex gap-2">
-      <button type="submit" class="btn btn-primary">
-        <i class="bi bi-receipt"></i> Valider la vente
-      </button>
-      <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Annuler</a>
+    <!-- Infos client -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-header bg-transparent border-0 pt-4 px-4">
+        <h5 class="fw-bold mb-0">Informations client</h5>
+      </div>
+
+      <div class="card-body p-4">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nom du client</label>
+            <input type="text" class="form-control" name="nom_client">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Téléphone</label>
+            <input type="text" class="form-control" name="telephone_client">
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Adresse de livraison</label>
+            <textarea class="form-control" name="adresse_livraison" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Paiement -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-header bg-transparent border-0 pt-4 px-4">
+        <h5 class="fw-bold mb-0">Paiement</h5>
+      </div>
+
+      <div class="card-body p-4">
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label class="form-label">Mode de paiement</label>
+            <select class="form-select" id="mode_paiement" name="mode_paiement" required>
+              <option disabled selected>-- Sélectionner --</option>
+              <option value="Especes">Espèce</option>
+              <option value="Wave">Wave</option>
+              <option value="Orange Money">Orange Money</option>
+              <option value="Dette">Dette (crédit)</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Prix de livraison</label>
+            <input type="number" step="0.01" min="0"
+                   class="form-control"
+                   id="prix_livraison"
+                   name="prix_livraison"
+                   value="0">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Montant total</label>
+            <input type="text" class="form-control fw-bold text-primary"
+                   id="montant_total_affiche" readonly>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Montant payé</label>
+            <input type="number" step="0.01" min="0"
+                   class="form-control"
+                   id="montant_paye"
+                   name="montant_paye">
+
+            <div id="note_dette" class="form-text" style="display:none;">
+              Mode dette : paiement partiel possible.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Boutons -->
+    <div class="d-flex gap-3">
+      <button type="submit" class="btn btn-primary px-4">
+        <i class="bi bi-check-circle-fill me-2"></i>Valider la vente
+      </button>
+
+      <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+        Annuler
+      </a>
+    </div>
+
   </form>
 </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", function () {
+
   const searchInput = document.getElementById("searchProduit");
   const table = document.getElementById("tableProduits");
   const tbody = table.querySelector("tbody");
+
   const selectMode = document.getElementById("mode_paiement");
   const montantPayeInput = document.getElementById("montant_paye");
+  const prixLivraisonInput = document.getElementById("prix_livraison");
   const noteDette = document.getElementById("note_dette");
+  const montantTotalAffiche = document.getElementById("montant_total_affiche");
 
+  // 🔍 Recherche dynamique
   searchInput.addEventListener("input", function() {
     const term = this.value.toLowerCase().trim();
     Array.from(tbody.querySelectorAll("tr")).forEach(row => {
@@ -127,43 +198,67 @@
     });
   });
 
+  // 🧮 Calcul total produits
   function totalPanier() {
     let total = 0;
+
     tbody.querySelectorAll("tr").forEach(row => {
       const qte = parseFloat(row.querySelector(".quantite-produit")?.value) || 0;
       const prix = parseFloat(row.querySelector(".prix-produit")?.value) || 0;
-      if (qte > 0 && prix >= 0) total += qte * prix;
+
+      if (qte > 0 && prix >= 0) {
+        total += qte * prix;
+      }
     });
-    return Number(total.toFixed(2));
+
+    return total;
   }
 
+  // 🧮 Total général (produits + livraison)
+  function totalGeneral() {
+    const totalProduits = totalPanier();
+    const livraison = parseFloat(prixLivraisonInput.value) || 0;
+    return totalProduits + livraison;
+  }
+
+  // 🔄 Mise à jour affichage
   function majAffichageTotal() {
-    const total = totalPanier();
-    document.getElementById("montant_total_affiche").value = total.toLocaleString() + " FCFA";
-    const mode = selectMode.value;
-    if (mode !== "Dette") {
+    const total = totalGeneral();
+
+    montantTotalAffiche.value = total.toLocaleString() + " FCFA";
+
+    if (selectMode.value !== "Dette") {
       montantPayeInput.value = total;
     }
   }
 
+  // 💳 Mode paiement
   function onModePaiementChange() {
     if (selectMode.value === "Dette") {
       noteDette.style.display = "block";
     } else {
       noteDette.style.display = "none";
-      montantPayeInput.value = totalPanier();
+      montantPayeInput.value = totalGeneral();
     }
   }
 
- 
-  document.querySelectorAll(".quantite-produit, .prix-produit").forEach(input => {
-    input.addEventListener("input", majAffichageTotal);
-  });
+  // 🔗 Attacher événements
+  function attachEvents() {
+    document.querySelectorAll(".quantite-produit, .prix-produit").forEach(input => {
+      input.addEventListener("input", majAffichageTotal);
+    });
+  }
+
+  attachEvents();
+
+  prixLivraisonInput.addEventListener("input", majAffichageTotal);
   selectMode.addEventListener("change", onModePaiementChange);
 
-  window.addEventListener("DOMContentLoaded", () => {
-    majAffichageTotal();
-    onModePaiementChange();
-  });
+  // ⚡ Initialisation
+  majAffichageTotal();
+  onModePaiementChange();
+
+});
 </script>
+
 {% endblock %}

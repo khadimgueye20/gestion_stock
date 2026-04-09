@@ -1,69 +1,456 @@
 {% extends 'base.html' %}
 
+{% block title %}Archives des statistiques{% endblock %}
+
+{% block head %}
+<style>
+  .archives-wrapper {
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 0.8rem 0 0.5rem;
+  }
+
+  .archives-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.6rem;
+  }
+
+  .archives-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .archives-logo-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 0.45rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .archives-logo-box img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+
+  .archives-title-block p {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 4px;
+  }
+
+  .archives-title-block h1 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.2rem;
+  }
+
+  .archives-title-block .subtitle {
+    color: #6b7280;
+    font-size: 0.94rem;
+    margin: 0;
+  }
+
+  .archives-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-archive {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.18s ease;
+  }
+
+  .btn-archive:hover {
+    background: #f9fafb;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    color: #111827;
+  }
+
+  .archives-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .summary-card {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 1.25rem 1.35rem;
+  }
+
+  .summary-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 8px;
+  }
+
+  .summary-value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .summary-sub {
+    color: #6b7280;
+    font-size: 0.88rem;
+    margin-top: 6px;
+  }
+
+  .archives-table-card {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  .archives-table-header {
+    padding: 1.35rem 1.4rem 0.8rem;
+  }
+
+  .archives-table-header h5 {
+    margin: 0 0 4px;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .archives-table-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.92rem;
+  }
+
+  .archives-table-wrap {
+    padding: 0 1rem 1rem;
+  }
+
+  .archives-table {
+    margin-bottom: 0;
+  }
+
+  .archives-table thead th {
+    white-space: nowrap;
+  }
+
+  .month-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(31, 111, 235, 0.08);
+    color: #1d4ed8;
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .money-positive {
+    font-weight: 700;
+    color: #059669;
+  }
+
+  .money-neutral {
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .margin-cell {
+    font-weight: 700;
+    color: #7c3aed;
+  }
+
+  .sales-cell {
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .date-cell {
+    color: #6b7280;
+    font-size: 0.92rem;
+  }
+
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-icon-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    text-decoration: none;
+  }
+
+  .empty-state {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-align: center;
+    padding: 3rem 1.5rem;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    color: #9ca3af;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-title {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.35rem;
+  }
+
+  .empty-text {
+    color: #6b7280;
+    margin-bottom: 0;
+  }
+
+  /* Dark mode */
+  html.dark-mode .archives-logo-box,
+  html.dark-mode .summary-card,
+  html.dark-mode .archives-table-card,
+  html.dark-mode .empty-state {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.22) !important;
+  }
+
+  html.dark-mode .archives-title-block p,
+  html.dark-mode .summary-label,
+  html.dark-mode .date-cell,
+  html.dark-mode .empty-icon {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .archives-title-block h1,
+  html.dark-mode .summary-value,
+  html.dark-mode .archives-table-header h5,
+  html.dark-mode .empty-title,
+  html.dark-mode .sales-cell,
+  html.dark-mode .money-neutral {
+    color: #f8fafc !important;
+  }
+
+  html.dark-mode .archives-title-block .subtitle,
+  html.dark-mode .archives-table-header p,
+  html.dark-mode .summary-sub,
+  html.dark-mode .empty-text {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .btn-archive {
+    background: #111827 !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+    box-shadow: none !important;
+  }
+
+  html.dark-mode .btn-archive:hover {
+    background: #1f2937 !important;
+    color: #ffffff !important;
+  }
+
+  html.dark-mode .month-badge {
+    background: rgba(96, 165, 250, 0.12) !important;
+    color: #93c5fd !important;
+  }
+
+  html.dark-mode .money-positive {
+    color: #34d399 !important;
+  }
+
+  html.dark-mode .margin-cell {
+    color: #c4b5fd !important;
+  }
+
+  @media (max-width: 768px) {
+    .archives-topbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .archives-actions {
+      width: 100%;
+    }
+
+    .btn-archive {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+
+    .archives-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <h2 class="mb-4">📂 Archives des mois précédents</h2>
+<div class="archives-wrapper">
 
-  <!-- Bouton retour et corbeille -->
-  <a href="{{ url_for('stats') }}" class="btn btn-outline-primary mb-3">← Retour aux Stats</a>
-  
+  <div class="archives-topbar">
+    <div class="archives-brand">
+      <div class="archives-logo-box">
+        <img src="{{ url_for('static', filename='logo_geytoris.png') }}" alt="Logo Geytoris">
+      </div>
 
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover align-middle text-center">
-      <thead class="table-light">
-        <tr>
-          <th>Mois</th>
-          <th>Chiffre d'affaires</th>
-          <th>Total Achats</th>
-          <th>Bénéfice</th>
-          <th>Marge (%)</th>
-          <th>Nombre de ventes</th>
-          <th>Date d’enregistrement</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for a in archives %}
-        <tr>
-          <td>{{ a.mois }}</td>
-          <td>{{ a.chiffre_affaires | round(0) }} FCFA</td>
-          <td>{{ a.total_achats | round(0) }} FCFA</td>
-          <td>{{ a.benefice | round(0) }} FCFA</td>
-          <td>{{ a.marge | round(2) }}%</td>
-          <td>{{ a.nb_ventes }}</td>
-          <td>{{ a.date_enregistrement.strftime('%d/%m/%Y') }}</td>
-          <td>
-            <!-- Télécharger PDF -->
-            <a href="{{ url_for('telecharger_archive_pdf', archive_id=a.id) }}"
-               class="btn btn-sm btn-outline-primary me-1" title="Télécharger PDF">
-              📄
-            </a>
+      <div class="archives-title-block">
+        <p>Archives</p>
+        <h1>Archives des mois précédents</h1>
+        <p class="subtitle">Consultez, téléchargez et gérez les statistiques archivées de votre activité.</p>
+      </div>
+    </div>
 
-            <!-- Supprimer avec SweetAlert -->
-            <form method="POST"
-                  action="{{ url_for('supprimer_archive', archive_id=a.id) }}"
-                  class="form-supprimer-archive d-inline"
-                  data-mois="{{ a.mois }}">
-              <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">🗑️</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="archives-actions">
+      <a href="{{ url_for('stats') }}" class="btn-archive">
+        <span>📊</span> Retour aux stats
+      </a>
+    </div>
   </div>
+
+  {% if archives %}
+    <div class="archives-summary">
+      <div class="summary-card">
+        <div class="summary-label">Archives</div>
+        <div class="summary-value">{{ archives|length }}</div>
+        <div class="summary-sub">mois enregistrés</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Chiffre cumulé</div>
+        <div class="summary-value">{{ archives | sum(attribute='chiffre_affaires') | round(0) | int }} F</div>
+        <div class="summary-sub">sur toutes les archives</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Ventes cumulées</div>
+        <div class="summary-value">{{ archives | sum(attribute='nb_ventes') }}</div>
+        <div class="summary-sub">transactions archivées</div>
+      </div>
+    </div>
+
+    <div class="archives-table-card">
+      <div class="archives-table-header">
+        <h5>Liste des archives</h5>
+        <p>Chaque ligne représente un mois archivé avec ses principaux indicateurs.</p>
+      </div>
+
+      <div class="archives-table-wrap">
+        <div class="table-responsive">
+          <table class="table archives-table align-middle text-center">
+            <thead>
+              <tr>
+                <th>Mois</th>
+                <th>Chiffre d'affaires</th>
+                <th>Total achats</th>
+                <th>Bénéfice</th>
+                <th>Marge (%)</th>
+                <th>Ventes</th>
+                <th>Date d’enregistrement</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in archives %}
+              <tr>
+                <td>
+                  <span class="month-badge">{{ a.mois }}</span>
+                </td>
+                <td class="money-positive">{{ a.chiffre_affaires | round(0) }} FCFA</td>
+                <td class="money-neutral">{{ a.total_achats | round(0) }} FCFA</td>
+                <td class="money-positive">{{ a.benefice | round(0) }} FCFA</td>
+                <td class="margin-cell">{{ a.marge | round(2) }}%</td>
+                <td class="sales-cell">{{ a.nb_ventes }}</td>
+                <td class="date-cell">{{ a.date_enregistrement.strftime('%d/%m/%Y') }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <a href="{{ url_for('telecharger_archive_pdf', archive_id=a.id) }}"
+                       class="btn btn-sm btn-outline-primary btn-icon-action"
+                       title="Télécharger PDF">
+                      📄
+                    </a>
+
+                    <form method="POST"
+                          action="{{ url_for('supprimer_archive', archive_id=a.id) }}"
+                          class="form-supprimer-archive d-inline"
+                          data-mois="{{ a.mois }}">
+                      <button type="submit"
+                              class="btn btn-sm btn-outline-danger btn-icon-action"
+                              title="Supprimer">
+                        🗑️
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📂</div>
+      <div class="empty-title">Aucune archive disponible</div>
+      <p class="empty-text">Les mois archivés apparaîtront ici dès qu’ils seront enregistrés.</p>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block scripts %}
-<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.form-supprimer-archive').forEach(form => {
     form.addEventListener('submit', function(e) {
-      e.preventDefault(); // empêche la soumission immédiate
+      e.preventDefault();
       const mois = this.dataset.mois;
 
       Swal.fire({
@@ -77,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelButtonText: 'Annuler'
       }).then((result) => {
         if (result.isConfirmed) {
-          this.submit(); // on soumet le formulaire si confirmé
+          this.submit();
         }
       });
     });

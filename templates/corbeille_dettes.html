@@ -3,48 +3,125 @@
 {% block title %}Corbeille des dettes{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2 class="my-4">🗑️ Corbeille des dettes supprimées</h2>
-    <a href="{{ url_for('dettes') }}" class="btn btn-outline-primary mb-3">← Retour à la liste des dettes</a>
+<div class="container-fluid px-0">
+
+    <!-- En-tête -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+        <div class="card-body p-4 p-lg-5">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="rounded-4 d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width: 62px; height: 62px; background: linear-gradient(135deg, rgba(220,53,69,0.15), rgba(255,193,7,0.12));">
+                        <i class="bi bi-trash3-fill fs-3 text-danger"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-1">Corbeille des dettes supprimées</h2>
+                        <p class="text-muted mb-0">
+                            Consultez les dettes supprimées, restaurez-les ou supprimez-les définitivement.
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <a href="{{ url_for('dettes') }}" class="btn btn-light border rounded-pill px-4">
+                        <i class="bi bi-arrow-left me-2"></i>Retour à la liste des dettes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {% if dettes %}
-    <div class="table-responsive">
-        <table class="table table-bordered text-center align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Client</th>
-                    <th>Téléphone</th>
-                    <th>Date</th>
-                    <th>Montant total</th>
-                    <th>Remboursé</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for dette in dettes %}
-                <tr>
-                    <td>{{ dette.client_nom }}</td>
-                    <td>{{ dette.client_telephone or "—" }}</td>
-                    <td>{{ dette.date_creation.strftime("%d/%m/%Y") }}</td>
-                    <td>{{ "{:,.0f}".format(dette.montant_total) }} FCFA</td>
-                    <td>{{ "{:,.0f}".format(dette.montant_rembourse) }} FCFA</td>
-                    <td>
-                        <form method="POST" action="{{ url_for('restaurer_dette', dette_id=dette.id) }}" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-success">Restaurer</button>
-                        </form>
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 px-4 pt-4 pb-0">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-3 p-2" style="background-color: rgba(220,53,69,0.10);">
+                    <i class="bi bi-archive-fill fs-5 text-danger"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-1">Liste des dettes supprimées</h5>
+                    <p class="text-muted small mb-0">
+                        Toutes les dettes supprimées sont affichées ici avec les actions disponibles.
+                    </p>
+                </div>
+            </div>
+        </div>
 
-                        <form method="POST" action="{{ url_for('supprimer_definitif_dette', dette_id=dette.id) }}" class="form-supprimer-definitif d-inline" data-nom="{{ dette.client_nom }}">
-                            <button type="submit" class="btn btn-sm btn-danger">❌ Supprimer</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table align-middle table-hover mb-0">
+                    <thead style="background-color: #f8f9fa;">
+                        <tr>
+                            <th class="fw-semibold">Client</th>
+                            <th class="fw-semibold">Téléphone</th>
+                            <th class="fw-semibold">Date</th>
+                            <th class="fw-semibold">Montant total</th>
+                            <th class="fw-semibold">Remboursé</th>
+                            <th class="fw-semibold text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dette in dettes %}
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-dark">{{ dette.client_nom }}</div>
+                            </td>
+                            <td>
+                                <span class="text-muted">{{ dette.client_telephone or "—" }}</span>
+                            </td>
+                            <td>{{ dette.date_creation.strftime("%d/%m/%Y") }}</td>
+                            <td>
+                                <span class="fw-semibold text-dark">
+                                    {{ "{:,.0f}".format(dette.montant_total) }} FCFA
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success-subtle text-success border px-3 py-2">
+                                    {{ "{:,.0f}".format(dette.montant_rembourse) }} FCFA
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex flex-wrap justify-content-center gap-2">
+                                    <form method="POST" action="{{ url_for('restaurer_dette', dette_id=dette.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3">
+                                            <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurer
+                                        </button>
+                                    </form>
+
+                                    <form method="POST"
+                                          action="{{ url_for('supprimer_definitif_dette', dette_id=dette.id) }}"
+                                          class="form-supprimer-definitif d-inline"
+                                          data-nom="{{ dette.client_nom }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                            <i class="bi bi-x-circle me-1"></i>Supprimer
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
     {% else %}
-    <div class="alert alert-info text-center">
-        Aucune dette supprimée pour le moment.
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body text-center py-5">
+            <div class="mb-3">
+                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center"
+                     style="width: 70px; height: 70px;">
+                    <i class="bi bi-trash fs-2 text-muted"></i>
+                </div>
+            </div>
+            <h5 class="fw-bold mb-2">Aucune dette supprimée</h5>
+            <p class="text-muted mb-4">
+                La corbeille des dettes est vide pour le moment.
+            </p>
+            <a href="{{ url_for('dettes') }}" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-arrow-left me-2"></i>Retour aux dettes
+            </a>
+        </div>
     </div>
     {% endif %}
 </div>
@@ -62,10 +139,12 @@
         text: `La dette de "${nom}" sera supprimée définitivement.`,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
         confirmButtonText: 'Oui, supprimer',
-        cancelButtonText: 'Annuler'
+        cancelButtonText: 'Annuler',
+        background: '#fff',
+        borderRadius: '16px'
       }).then((result) => {
         if (result.isConfirmed) {
           this.submit();

@@ -165,15 +165,25 @@ class Recu(db.Model):
     reference = db.Column(db.String(30), unique=True, nullable=False)
     utilisateur_id = db.Column(db.Integer, db.ForeignKey('utilisateur.id'), nullable=False)
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
+    
     montant_total = db.Column(db.Float, nullable=False)
-    supprime = db.Column(db.Boolean, default=False)  # ✅ Corbeille
+
+    supprime = db.Column(db.Boolean, default=False)  # Corbeille
+
     nom_client = db.Column(db.String(100), nullable=True)
     telephone_client = db.Column(db.String(20), nullable=True)
+
     montant_paye = db.Column(db.Float, default=0)
     monnaie_rendue = db.Column(db.Float, default=0)
-    mode_paiement = db.Column(db.String(50), nullable=True)  # ✅ Nouveau champ
-    dette = db.relationship('Dette', backref='recu', uselist=False)
 
+    mode_paiement = db.Column(db.String(50), nullable=True)
+
+    # ✅ NOUVEAUX CHAMPS
+    adresse_livraison = db.Column(db.String(255), nullable=True)
+    prix_livraison = db.Column(db.Float, default=0)
+
+    # Relations
+    dette = db.relationship('Dette', backref='recu', uselist=False)
     utilisateur = db.relationship('Utilisateur', backref=db.backref('recus', lazy=True))
 
 
@@ -748,45 +758,63 @@ def effectuer_vente():
     # 🚫 Si le compte est suspendu → interdiction d'effectuer une vente
     if getattr(current_user, 'est_suspendu', False):
         flash("🚫 Votre compte est suspendu. Vous ne pouvez pas effectuer une vente. Contactez l'administrateur.", "danger")
-        return redirect(url_for("index"))  # ✅ Changé de 'dashboard' à 'index'
+        return redirect(url_for("index"))
 
     produits = Produit.query.filter_by(utilisateur_id=current_user.id, supprime=False).all()
 
     if request.method == "POST":
         ventes = []
-        montant_total = 0.0
+        total_produits = 0.0
 
         # 🔹 Infos client
-        nom_client = request.form.get("nom_client") or "Client"
-        telephone_client = request.form.get("telephone_client") or ""
+        nom_client = (request.form.get("nom_client") or "Client").strip()
+        telephone_client = (request.form.get("telephone_client") or "").strip()
+        adresse_livraison = (request.form.get("adresse_livraison") or "").strip()
+        mode_paiement = request.form.get("mode_paiement")
+
         try:
             montant_paye = float(request.form.get("montant_paye") or 0)
         except ValueError:
             montant_paye = 0.0
 
-        mode_paiement = request.form.get("mode_paiement")
+        try:
+            prix_livraison = float(request.form.get("prix_livraison") or 0)
+        except ValueError:
+            prix_livraison = 0.0
+
+        if prix_livraison < 0:
+            flash("⚠️ Le prix de livraison ne peut pas être négatif.", "warning")
+            return redirect(url_for("effectuer_vente"))
 
         # ✅ Analyse des produits vendus avec prix appliqué
         for produit in produits:
             qte_str = request.form.get(f"quantite_{produit.id}")
-            prix_str = request.form.get(f"prix_{produit.id}")  # <-- récupère prix appliqué
+            prix_str = request.form.get(f"prix_{produit.id}")
 
             if qte_str and qte_str.isdigit():
                 quantite = int(qte_str)
+
                 if 0 < quantite <= produit.quantite:
                     try:
                         prix_applique = float(prix_str) if prix_str not in (None, "") else float(produit.prix_vente or 0)
                     except ValueError:
                         prix_applique = float(produit.prix_vente or 0)
 
+                    if prix_applique < 0:
+                        flash(f"⚠️ Le prix appliqué pour le produit '{produit.nom}' est invalide.", "warning")
+                        return redirect(url_for("effectuer_vente"))
+
                     produit.quantite -= quantite
                     montant = quantite * prix_applique
-                    montant_total += montant
+                    total_produits += montant
                     ventes.append((produit.id, quantite, prix_applique))
 
         if not ventes:
             flash("⚠️ Aucun produit sélectionné pour la vente.", "warning")
             return redirect(url_for("effectuer_vente"))
+
+        # ✅ Total général = produits + livraison
+        montant_total = total_produits + prix_livraison
 
         # ✅ Génération du reçu
         reference = generer_reference_recu()
@@ -798,6 +826,8 @@ def effectuer_vente():
             monnaie_rendue=max(0, montant_paye - montant_total),
             nom_client=nom_client,
             telephone_client=telephone_client,
+            adresse_livraison=adresse_livraison,
+            prix_livraison=prix_livraison,
             mode_paiement=mode_paiement
         )
         db.session.add(recu)
@@ -832,7 +862,6 @@ def effectuer_vente():
     return render_template("effectuer_vente.html", produits=produits)
 
 
-
 @app.route('/voir_recu/<int:recu_id>')
 @login_required
 def voir_recu(recu_id):
@@ -862,10 +891,11 @@ def recus():
             )
         ).order_by(Recu.date_creation.desc()).all()
     else:
-        recus = Recu.query.filter_by(utilisateur_id=current_user.id, supprime=False) \
-                          .order_by(Recu.date_creation.desc()).all()
+        recus = Recu.query.filter_by(
+            utilisateur_id=current_user.id,
+            supprime=False
+        ).order_by(Recu.date_creation.desc()).all()
 
-    # 👉 Si requête AJAX (fetch), on retourne les reçus au format JSON
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         result = []
         for recu in recus:
@@ -879,7 +909,7 @@ def recus():
             })
         return jsonify(result)
 
-    return render_template('recus.html', recus=recus)
+    return render_template('recus.html', recus=recus, utilisateur=current_user)
 
 
 
@@ -893,9 +923,15 @@ def recu_pdf(recu_id):
 
     lignes = LigneVente.query.filter_by(recu_id=recu.id).all()
     utilisateur = current_user
+    montant_produits = (recu.montant_total or 0) - (recu.prix_livraison or 0)
 
-    # ✅ Transmettre la variable utilisateur au template
-    html = render_template("recu_pdf.html", recu=recu, lignes=lignes, utilisateur=utilisateur)
+    html = render_template(
+        "recu_pdf.html",
+        recu=recu,
+        lignes=lignes,
+        utilisateur=utilisateur,
+        montant_produits=montant_produits
+    )
 
     result = BytesIO()
     pisa_status = pisa.CreatePDF(html, dest=result)
@@ -905,8 +941,11 @@ def recu_pdf(recu_id):
         return redirect(url_for("recus"))
 
     result.seek(0)
-    return send_file(result, download_name=f"recu_{recu.reference}.pdf", as_attachment=True)
-
+    return send_file(
+        result,
+        download_name=f"recu_{recu.reference}.pdf",
+        as_attachment=True
+    )
 
 
 @app.route('/supprimer_recu/<int:recu_id>', methods=['POST'])
@@ -1161,11 +1200,9 @@ def stats():
     current_month = now.month
     current_year = now.year
 
-    # ========== AJOUTEZ ICI (après les variables de date) ==========
     # Mois précédent
     prev_month = (now - relativedelta(months=1)).month
     prev_year = (now - relativedelta(months=1)).year
-    # ================================================================
 
     # Produits les plus vendus du mois
     produits_vendus = db.session.query(
@@ -1207,7 +1244,6 @@ def stats():
          extract('year', Recu.date_creation) == current_year
      ).scalar() or 0
 
-    # ========== AJOUTEZ ICI (après total_ventes) ==========
     # CA mois précédent
     total_ventes_prev = db.session.query(
         func.sum(LigneVente.quantite * LigneVente.prix_unitaire)
@@ -1221,7 +1257,6 @@ def stats():
     evolution = 0
     if total_ventes_prev > 0:
         evolution = ((total_ventes - total_ventes_prev) / total_ventes_prev) * 100
-    # ======================================================
 
     # Coût d'achat total
     prix_achat_total = db.session.query(
@@ -1245,16 +1280,21 @@ def stats():
     # Nom du mois
     mois_actuel = now.strftime("%B")
 
-    # Meilleur client
+    # Meilleur client du mois par nombre d'achats
     meilleur_client = db.session.query(
         Recu.nom_client,
+        func.count(Recu.id).label('nombre_achats'),
         func.sum(Recu.montant_total).label('total_depense')
     ).filter(
         Recu.utilisateur_id == utilisateur_id,
         Recu.nom_client != None,
+        Recu.nom_client != "",
         extract('month', Recu.date_creation) == current_month,
         extract('year', Recu.date_creation) == current_year
-    ).group_by(Recu.nom_client).order_by(func.sum(Recu.montant_total).desc()).first()
+    ).group_by(Recu.nom_client).order_by(
+        func.count(Recu.id).desc(),
+        func.sum(Recu.montant_total).desc()
+    ).first()
 
     # Meilleure vente
     meilleure_vente = Recu.query.filter(
@@ -1284,8 +1324,8 @@ def stats():
         meilleur_client=meilleur_client,
         meilleure_vente=meilleure_vente,
         vente_plus_basse=vente_plus_basse,
-        evolution=evolution,  # <-- Ajoutez cette ligne
-        total_ventes_prev=total_ventes_prev  # <-- Ajoutez cette ligne
+        evolution=evolution,
+        total_ventes_prev=total_ventes_prev
     )
 @app.route("/rapport_pdf")
 @login_required
@@ -1546,7 +1586,7 @@ def rechercher_produits():
 @login_required
 def dettes():
     dettes = Dette.query.filter_by(utilisateur_id=current_user.id, supprime=False).all()
-    return render_template('dettes.html', dettes=dettes)
+    return render_template('dettes.html', dettes=dettes, utilisateur=current_user)
 
 @app.route('/supprimer_dette/<int:dette_id>', methods=['POST'])
 @login_required
@@ -1746,9 +1786,12 @@ def modifier_recu(recu_id):
 
     # -------- POST : appliquer modifications --------
     # 1) Champs du header
-    recu.nom_client = (request.form.get("nom_client") or "").strip() or "Client"
-    recu.telephone_client = (request.form.get("telephone_client") or "").strip()
-    recu.mode_paiement = (request.form.get("mode_paiement") or "").strip()
+    # 4) Recalculs du reçu
+    prix_livraison = float(recu.prix_livraison or 0)
+    recu.montant_total = round(nouveau_total + prix_livraison, 2)
+    recu.montant_paye = round(nouveau_montant_paye, 2)
+    recu.monnaie_rendue = max(0.0, round(recu.montant_paye - recu.montant_total, 2))
+
 
     try:
         nouveau_montant_paye = float(request.form.get("montant_paye") or 0)
@@ -2049,55 +2092,62 @@ def login():
 
     return render_template('login.html', app_name="Geytoris")
 
+from io import BytesIO
+
 @app.route("/telecharger_recu_pdf/<int:recu_id>")
 @login_required
 def telecharger_recu_pdf(recu_id):
     recu = Recu.query.get_or_404(recu_id)
+
+    if recu.utilisateur_id != current_user.id:
+        abort(403)
+
     lignes = LigneVente.query.filter_by(recu_id=recu.id).all()
 
-    # 1️⃣ Informations vente
+    montant_produits = sum((l.quantite or 0) * (l.prix_unitaire or 0) for l in lignes)
+
     vente_data = {
         "reference": recu.reference,
-        "montant_total": recu.montant_total,
-        "montant_paye": recu.montant_paye,
-        "monnaie_rendue": recu.monnaie_rendue,
+        "date_creation": recu.date_creation,
+        "montant_produits": montant_produits,
+        "prix_livraison": float(recu.prix_livraison or 0),
+        "montant_total": float(recu.montant_total or 0),
+        "montant_paye": float(recu.montant_paye or 0),
+        "monnaie_rendue": float(recu.monnaie_rendue or 0),
+        "adresse_livraison": recu.adresse_livraison or "",
         "items": [
             {
-                "nom": l.produit.nom,
-                "quantite": l.quantite,
-                "prix": l.prix_unitaire,
-                "total": l.quantite * l.prix_unitaire
+                "nom": l.produit.nom if l.produit else "Produit supprimé",
+                "quantite": l.quantite or 0,
+                "prix": float(l.prix_unitaire or 0),
+                "total": float((l.quantite or 0) * (l.prix_unitaire or 0))
             }
             for l in lignes
         ]
     }
 
-    # 2️⃣ Informations boutique
     boutique_data = {
         "nom_boutique": current_user.nom_boutique or "Ma Boutique",
         "adresse": current_user.adresse_boutique or "",
         "telephone": current_user.telephone_boutique or ""
     }
 
-    # 3️⃣ Informations client
     client_data = {
         "nom": recu.nom_client or "",
-        "telephone": recu.telephone_client or ""
+        "telephone": recu.telephone_client or "",
+        "adresse_livraison": recu.adresse_livraison or ""
     }
 
-    # 4️⃣ Créer automatiquement le dossier /pdfs
-    import os
-    folder = "pdfs"
-    os.makedirs(folder, exist_ok=True)
+    pdf_buffer = BytesIO()
+    generate_recu_A4_pdf(pdf_buffer, vente_data, boutique_data, client_data)
+    pdf_buffer.seek(0)
 
-    # 5️⃣ Chemin complet du fichier PDF
-    filepath = os.path.join(folder, f"recu_{recu.reference}.pdf")
-
-    # 6️⃣ Génération du PDF
-    generate_recu_A4_pdf(filepath, vente_data, boutique_data, client_data)
-
-    # 7️⃣ Envoi du fichier à l’utilisateur
-    return send_file(filepath, as_attachment=True)
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=f"recu_{recu.reference}.pdf",
+        mimetype="application/pdf"
+    )
 
 @app.before_request
 def verifier_utilisateur_suspendu():

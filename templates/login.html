@@ -4,161 +4,751 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ app_name }} – Connexion</title>
-
-  <!-- Bootstrap & Icônes -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
-
-  <!-- Google Font : Quicksand -->
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
-
+  <link rel="icon" href="{{ url_for('static', filename='logo_geytoris.png') }}" type="image/png">
   <style>
-    body, html {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      font-family: 'Quicksand', sans-serif;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:        #C9A84C;
+      --gold-hover:  #D9B85E;
+      --gold-light:  #E2C97E;
+      --gold-border: rgba(201,168,76,0.18);
+      --gold-border-focus: rgba(201,168,76,0.48);
+      --gold-bg:     rgba(201,168,76,0.06);
+      --gold-glow:   rgba(201,168,76,0.22);
+      --bg-main:     #080705;
+      --bg-panel:    #0d0b08;
+      --bg-card:     rgba(255,255,255,0.025);
+      --text-muted:  rgba(255,255,255,0.42);
+      --text-hint:   rgba(255,255,255,0.16);
+      --danger-bg:   rgba(226,75,74,0.09);
+      --danger-br:   rgba(226,75,74,0.26);
+      --danger-tx:   #F09595;
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background: var(--bg-main);
+      color: #fff;
+      display: flex;
+      min-height: 100vh;
       overflow: hidden;
     }
 
-    .background-blur {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: url('{{ url_for('static', filename='fond.jpg') }}') center center / cover no-repeat;
-      filter: blur(6px);
-      z-index: -1;
+    /* ══════════════════════════════
+       LEFT PANEL
+    ══════════════════════════════ */
+    .left-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 42px;
+      background: var(--bg-main);
+      position: relative;
+      overflow: hidden;
     }
 
-    .login-container {
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(8px);
-      padding: 40px 30px;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
-      max-width: 420px;
-      width: 100%;
+    .lp-glow {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 0% 60%, rgba(201,168,76,0.13) 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 10%, rgba(201,168,76,0.06) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    .lp-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.035) 1px, transparent 1px);
+      background-size: 42px 42px;
+      pointer-events: none;
+    }
+
+    .lp-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(8,7,5,0.55) 100%);
+      pointer-events: none;
+    }
+
+    .brand,
+    .lp-center,
+    .lp-footer { position: relative; z-index: 1; }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.96);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(201,168,76,0.35);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.28);
+      flex-shrink: 0;
+    }
+
+    .brand-box img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+    }
+
+    .brand-info { display: flex; flex-direction: column; gap: 1px; }
+
+    .brand-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .brand-sub {
+      font-size: 10px;
+      color: rgba(201,168,76,0.45);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 999px;
+      background: rgba(201,168,76,0.06);
+      margin-bottom: 22px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 0 5px rgba(201,168,76,0.14);
+      flex-shrink: 0;
+    }
+
+    .status-text {
+      font-size: 11px;
+      color: rgba(201,168,76,0.82);
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .tagline {
+      font-size: 34px;
+      font-weight: 700;
       color: #fff;
+      line-height: 1.22;
+      letter-spacing: -0.03em;
+      margin-bottom: 18px;
+      max-width: 500px;
     }
 
-    .texte-bienvenue {
-      font-size: 1.1rem;
-      color: #e1f0ff;
+    .tagline em {
+      font-style: normal;
+      color: var(--gold);
+    }
+
+    .tagline-sub {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.8;
+      max-width: 400px;
+    }
+
+    .features {
+      margin-top: 34px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 400px;
+    }
+
+    .feat {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .feat-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: rgba(201,168,76,0.08);
+      border: 1px solid rgba(201,168,76,0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .feat-icon svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--gold);
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .feat-text {
+      font-size: 13px;
+      color: rgba(255,255,255,0.48);
+      line-height: 1.5;
+    }
+
+    .feat-text strong {
+      color: rgba(255,255,255,0.82);
       font-weight: 600;
     }
 
-    .form-label {
-      font-weight: 500;
+    .lp-footer {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
-    .form-control {
-      border-radius: 8px;
+    .lp-footer-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(201,168,76,0.18), transparent);
     }
 
-    .btn-outline-light {
-      border-radius: 30px;
-      transition: all 0.3s ease;
+    .lp-footer-line.right {
+      background: linear-gradient(270deg, rgba(201,168,76,0.18), transparent);
     }
 
-    .btn-outline-light:hover {
-      background-color: #ffffff;
-      color: #000;
+    .lp-footer-text {
+      font-size: 11px;
+      color: rgba(255,255,255,0.18);
+      white-space: nowrap;
     }
 
-    .btn-a-propos {
-      background-color: rgba(255, 255, 255, 0.15);
-      color: #ffffff;
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-weight: 600;
-      font-size: 0.9rem;
+    /* ══════════════════════════════
+       RIGHT PANEL
+    ══════════════════════════════ */
+    .right-panel {
+      width: 460px;
+      min-width: 360px;
+      background: var(--bg-panel);
+      border-left: 1px solid rgba(201,168,76,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 78px 40px 54px;
+      position: relative;
+    }
+
+    .rp-top-link {
+      position: absolute;
+      top: 22px;
+      right: 26px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #080705;
       text-decoration: none;
-      border: 1px solid #ffffff88;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(3px);
-      box-shadow: 0 0 5px rgba(255,255,255,0.3);
+      background: var(--gold);
+      border: 1px solid var(--gold);
+      padding: 8px 16px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(201,168,76,0.28);
+      transition: background .2s, box-shadow .2s, transform .1s;
     }
 
-    .btn-a-propos:hover {
-      background-color: rgba(255, 255, 255, 0.3);
-      color: #000;
-      border-color: #fff;
-      box-shadow: 0 0 8px rgba(255,255,255,0.6);
+    .rp-top-link svg {
+      width: 13px;
+      height: 13px;
+      stroke: #080705;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
     }
 
-    .link-white:hover {
-      text-decoration: underline;
-      color: #f8f9fa;
+    .rp-top-link:hover {
+      background: var(--gold-hover);
+      box-shadow: 0 6px 18px rgba(201,168,76,0.36);
+      transform: translateY(-1px);
+    }
+
+    .rp-top-link:active {
+      transform: scale(0.98);
+    }
+
+    /* Form card */
+    .form-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(201,168,76,0.1);
+      border-radius: 20px;
+      padding: 30px 28px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 24px 50px rgba(0,0,0,0.35);
+    }
+
+    .form-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(201,168,76,0.55);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-eyebrow::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(201,168,76,0.12);
+    }
+
+    .form-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+      margin-bottom: 7px;
+    }
+
+    .form-desc {
+      font-size: 13px;
+      color: rgba(255,255,255,0.38);
+      line-height: 1.7;
+      margin-bottom: 26px;
+    }
+
+    /* Flash messages */
+    .flash-msg {
+      border-radius: 11px;
+      padding: 12px 14px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.5;
+    }
+
+    .flash-msg svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .flash-msg.danger,
+    .flash-msg.error {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-br);
+      color: var(--danger-tx);
+    }
+
+    .flash-msg.success,
+    .flash-msg.warning,
+    .flash-msg.info {
+      background: rgba(201,168,76,0.07);
+      border: 1px solid rgba(201,168,76,0.22);
+      color: #D9C06F;
+    }
+
+    /* Fields */
+    .field { margin-bottom: 16px; }
+
+    .field label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(201,168,76,0.55);
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      width: 15px;
+      height: 15px;
+      stroke: rgba(201,168,76,0.4);
+      fill: none;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+
+    .inp {
+      width: 100%;
+      height: 50px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid var(--gold-border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      padding: 0 14px 0 44px;
+      outline: none;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+    }
+
+    .inp::placeholder { color: var(--text-hint); }
+
+    .inp:focus {
+      background: rgba(201,168,76,0.055);
+      border-color: var(--gold-border-focus);
+      box-shadow: 0 0 0 4px rgba(201,168,76,0.07);
+    }
+
+    .inp-pw { padding-right: 46px; }
+
+    .eye-btn {
+      position: absolute;
+      right: 13px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+    }
+
+    .eye-btn svg {
+      width: 15px;
+      height: 15px;
+      stroke: rgba(201,168,76,0.38);
+      fill: none;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+      transition: stroke .2s;
+    }
+
+    .eye-btn:hover svg { stroke: var(--gold); }
+
+    .field-extra {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .field-extra a {
+      font-size: 11px;
+      color: rgba(201,168,76,0.45);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color .2s;
+    }
+
+    .field-extra a:hover { color: var(--gold); }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      height: 50px;
+      border: none;
+      border-radius: 12px;
+      background: var(--gold);
+      color: #080705;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin-top: 10px;
+      letter-spacing: 0.03em;
+      transition: background .2s, box-shadow .2s, transform .1s;
+      box-shadow: 0 8px 24px var(--gold-glow), 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .btn-submit:hover {
+      background: var(--gold-hover);
+      box-shadow: 0 10px 28px rgba(201,168,76,0.3), 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .btn-submit:active { transform: scale(0.99); }
+
+    .btn-submit svg {
+      width: 15px;
+      height: 15px;
+      stroke: #080705;
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0 16px;
+      color: rgba(201,168,76,0.25);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(201,168,76,0.1);
+    }
+
+    .register-link {
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .register-link a {
+      color: var(--gold);
+      text-decoration: none;
+      font-weight: 700;
+      transition: color .2s;
+    }
+
+    .register-link a:hover { color: var(--gold-light); }
+
+    /* ══════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════ */
+    @media (max-width: 860px) {
+      .left-panel { display: none; }
+      .right-panel {
+        width: 100%;
+        min-width: unset;
+        padding: 36px 22px;
+      }
     }
   </style>
 </head>
 <body>
 
-<!-- Bouton À propos en haut à droite -->
-<div style="position: absolute; top: 20px; right: 30px; z-index: 10;">
-  <a href="{{ url_for('a_propos') }}" class="btn-a-propos">
-    <i class="bi bi-info-circle me-1"></i> À propos
-  </a>
-</div>
+  <!-- ── Left panel ── -->
+  <div class="left-panel">
+    <div class="lp-glow"></div>
+    <div class="lp-grid"></div>
+    <div class="lp-vignette"></div>
 
-<div class="background-blur"></div>
+    <div class="brand">
+      <div class="brand-box">
+        <img src="{{ url_for('static', filename='logo_geytoris.png') }}" alt="Logo Geytoris">
+      </div>
+      <div class="brand-info">
+        <span class="brand-name">Geytoris</span>
+        <span class="brand-sub">Gestion de stock</span>
+      </div>
+    </div>
 
-<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
-  <div class="login-container text-white">
+    <div class="lp-center">
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span class="status-text">Plateforme active</span>
+      </div>
 
-    <!-- Titre stylisé -->
-    <p class="text-center texte-bienvenue mb-2">
-      Bienvenue sur <strong style="color: #ffffff;">{{ app_name }}</strong><br>
-      Connectez-vous pour gérer vos stocks simplement.
-    </p>
+      <div class="tagline">
+        Gérez votre stock<br>avec <em>clarté</em> et<br>confiance.
+      </div>
 
-    <h3 class="text-center mb-4 fw-bold">Connexion</h3>
+      <div class="tagline-sub">
+        Une interface pensée pour les commerçants sérieux — contrôle total, en temps réel.
+      </div>
 
-    <!-- Messages flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+      <div class="features">
+        <div class="feat">
+          <div class="feat-icon">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    <!-- Formulaire -->
-    <form method="POST">
-      <div class="mb-3">
-        <label for="nom_utilisateur" class="form-label">Nom d'utilisateur</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-person"></i></span>
-          <input type="text" class="form-control" id="nom_utilisateur" name="nom_utilisateur" required>
+          <div class="feat-text">
+            <strong>Stock en temps réel</strong> — suivi instantané des mouvements
+          </div>
+        </div>
+        <div class="feat">
+          <div class="feat-icon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="feat-text">
+            <strong>Reçus PDF</strong> — générés automatiquement à chaque vente
+          </div>
+        </div>
+        <div class="feat">
+          <div class="feat-icon">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="feat-text">
+            <strong>Gestion des dettes</strong> — suivi client précis et complet
+          </div>
         </div>
       </div>
+    </div>
 
-      <div class="mb-3">
-        <label for="mot_de_passe" class="form-label">Mot de passe</label>
-        <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" required>
-      </div>
-
-      <div class="d-grid">
-        <button type="submit" class="btn btn-outline-light btn-lg fw-bold">Se connecter</button>
-      </div>
-
-      <div class="text-center mt-3">
-        <a href="{{ url_for('mot_de_passe_oublie') }}" class="text-white link-white">Mot de passe oublié ?</a>
-      </div>
-
-      <div class="text-center mt-2">
-        <a href="{{ url_for('register') }}" class="text-white link-white">Créer un compte</a>
-      </div>
-    </form>
-
+    <div class="lp-footer">
+      <div class="lp-footer-line"></div>
+      <span class="lp-footer-text">© 2026 {{ app_name }}</span>
+      <div class="lp-footer-line right"></div>
+    </div>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- ── Right panel ── -->
+  <div class="right-panel">
+
+    <a href="{{ url_for('a_propos') }}" class="rp-top-link">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      À propos
+    </a>
+
+    <div class="form-card">
+
+      <div class="form-eyebrow">Espace sécurisé</div>
+      <div class="form-title">Connexion</div>
+      <div class="form-desc">Ravi de vous revoir. Accédez à votre tableau de bord.</div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash-msg {{ category }}">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" novalidate>
+
+        <div class="field">
+          <label for="nom_utilisateur">Nom d'utilisateur</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <input
+              class="inp"
+              type="text"
+              id="nom_utilisateur"
+              name="nom_utilisateur"
+              placeholder="Votre identifiant"
+              autocomplete="username"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="mot_de_passe">Mot de passe</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input
+              class="inp inp-pw"
+              type="password"
+              id="mot_de_passe"
+              name="mot_de_passe"
+              placeholder="••••••••••"
+              autocomplete="current-password"
+              required
+            >
+            <button type="button" class="eye-btn" id="togglePassword" aria-label="Afficher le mot de passe">
+              <svg id="eye-icon" viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="field-extra">
+            <a href="{{ url_for('mot_de_passe_oublie') }}">Mot de passe oublié ?</a>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          Se connecter
+        </button>
+
+      </form>
+
+      <div class="divider">ou</div>
+
+      <div class="register-link">
+        Pas encore de compte ? <a href="{{ url_for('register') }}">Créer un compte</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput  = document.getElementById('mot_de_passe');
+    const eyeIcon        = document.getElementById('eye-icon');
+
+    if (togglePassword && passwordInput && eyeIcon) {
+      togglePassword.addEventListener('click', function () {
+        const isHidden = passwordInput.type === 'password';
+        passwordInput.type = isHidden ? 'text' : 'password';
+        this.setAttribute('aria-label', isHidden ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+        eyeIcon.innerHTML = isHidden
+          ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`
+          : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+      });
+    }
+  </script>
+
 </body>
 </html>

@@ -2,205 +2,406 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Geytoris{% endblock %}</title>
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="{{ url_for('static', filename='logo_geytoris.png') }}" type="image/png">
 
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
   <style>
+    :root {
+      --primary-color: #1f6feb;
+      --primary-dark: #174ea6;
+      --accent-color: #f97316;
+      --success-color: #16a34a;
+      --danger-color: #dc2626;
+      --warning-color: #f59e0b;
+
+      --bg-main: #f4f7fb;
+      --bg-card: rgba(255, 255, 255, 0.92);
+      --text-main: #1f2937;
+      --text-muted: #6b7280;
+      --border-color: rgba(15, 23, 42, 0.08);
+      --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --shadow-light: 0 6px 18px rgba(15, 23, 42, 0.06);
+      --radius-lg: 18px;
+      --radius-md: 12px;
+    }
+
+    html.dark-mode {
+      --primary-color: #60a5fa;
+      --primary-dark: #3b82f6;
+      --accent-color: #fb923c;
+
+      --bg-main: #0f172a;
+      --bg-card: rgba(15, 23, 42, 0.92);
+      --text-main: #e5e7eb;
+      --text-muted: #94a3b8;
+      --border-color: rgba(148, 163, 184, 0.15);
+      --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.35);
+      --shadow-light: 0 6px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    html, body {
+      min-height: 100%;
+    }
+
     body {
       font-family: 'Quicksand', sans-serif;
-    }
-    .content {
-      position: relative;
-      z-index: 1;
-    }
-    .container {
-      background-color: rgba(255, 255, 255, 0.88);
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    }
-    .table thead th {
-      background-color: #f28b82 !important;
-      color: white !important;
-    }
-    .btn-ajouter {
-      background-color: #f28b82 !important;
-      border-color: #f28b82 !important;
-      color: white !important;
-    }
-    .btn-ajouter:hover {
-      background-color: #e57373 !important;
-      border-color: #e57373 !important;
-    }
-    form label.form-label {
-      font-weight: bold;
-    }
-    .logo-navbar {
-      height: 60px;
-      max-height: 100%;
-      object-fit: contain;
-    }
-    .nav-gold-1 { color: #d4af37 !important; font-weight: bold; }
-    .nav-gold-1:hover { color: #bfa12f !important; text-decoration: underline; }
-    .nav-gold-4 { color: #e1c16e !important; font-weight: bold; }
-    .nav-gold-4:hover { color: #cfae5f !important; text-decoration: underline; }
-    .nav-link { transition: color 0.3s ease; }
-    .nav-links-section {
-      background: linear-gradient(to right, #f0f0f0, #dcdcdc);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      border-radius: 12px;
+      background:
+        radial-gradient(circle at top left, rgba(31, 111, 235, 0.08), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(249, 115, 22, 0.08), transparent 28%),
+        var(--bg-main);
+      color: var(--text-main);
+      margin: 0;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    @media (max-width: 576px) {
-      .nav-links-section {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        width: 100%;
+    a {
+      text-decoration: none;
+    }
+
+    .main-navbar {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.88);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: var(--shadow-light);
+    }
+
+    html.dark-mode .main-navbar {
+      background: rgba(15, 23, 42, 0.88);
+    }
+
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      border-radius: 14px;
+      background: white;
+      padding: 4px;
+      box-shadow: var(--shadow-light);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .brand-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .nav-pill {
+      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.65);
+      color: var(--text-main);
+      border-radius: 999px;
+      padding: 0.62rem 1rem;
+      font-weight: 600;
+      transition: all 0.25s ease;
+    }
+
+    .nav-pill:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-light);
+      color: var(--primary-color);
+      border-color: rgba(31, 111, 235, 0.22);
+    }
+
+    html.dark-mode .nav-pill {
+      background: rgba(30, 41, 59, 0.7);
+      color: var(--text-main);
+    }
+
+    .user-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.65rem 0.9rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(31,111,235,0.10), rgba(249,115,22,0.10));
+      border: 1px solid var(--border-color);
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .user-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-color);
+      color: white;
+      font-weight: 700;
+      box-shadow: var(--shadow-light);
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+      background: rgba(255,255,255,0.7);
+      color: var(--text-main);
+      transition: all 0.25s ease;
+    }
+
+    .icon-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-light);
+      color: var(--primary-color);
+    }
+
+    html.dark-mode .icon-btn {
+      background: rgba(30,41,59,0.7);
+      color: var(--text-main);
+    }
+
+    .logout-btn {
+      border-radius: 999px;
+      font-weight: 700;
+      padding: 0.62rem 1.1rem;
+    }
+
+    .dropdown-menu {
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: var(--shadow-soft);
+      padding: 0.6rem;
+    }
+
+    .dropdown-item {
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+      font-weight: 600;
+    }
+
+    .dropdown-item:hover {
+      background: rgba(31, 111, 235, 0.08);
+      color: var(--primary-color);
+    }
+
+    html.dark-mode .dropdown-menu {
+      background: #111827;
+    }
+
+    html.dark-mode .dropdown-item {
+      color: var(--text-main);
+    }
+
+    html.dark-mode .dropdown-item:hover {
+      background: rgba(96, 165, 250, 0.12);
+      color: #93c5fd;
+    }
+
+    .page-shell {
+      padding: 1.5rem 0 2.5rem;
+    }
+
+    .content-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      padding: 1.4rem;
+      backdrop-filter: blur(6px);
+    }
+
+    .flash-wrapper .alert {
+      border: none;
+      border-radius: 14px;
+      box-shadow: var(--shadow-light);
+      font-weight: 600;
+    }
+
+    .table {
+      --bs-table-bg: transparent;
+      color: var(--text-main);
+    }
+
+    .table thead th {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+      color: #fff !important;
+      border: none !important;
+      vertical-align: middle;
+    }
+
+    .card,
+    .modal-content,
+    .list-group-item,
+    .form-control,
+    .form-select,
+    .input-group-text {
+      border-color: var(--border-color) !important;
+    }
+
+    .card,
+    .modal-content {
+      border-radius: 18px;
+      box-shadow: var(--shadow-light);
+      background: var(--bg-card);
+      color: var(--text-main);
+    }
+
+    .form-control,
+    .form-select {
+      min-height: 46px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.85);
+      color: var(--text-main);
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: rgba(31,111,235,0.45);
+      box-shadow: 0 0 0 0.2rem rgba(31,111,235,0.12);
+    }
+
+    html.dark-mode .form-control,
+    html.dark-mode .form-select,
+    html.dark-mode .input-group-text {
+      background: #1e293b !important;
+      color: var(--text-main) !important;
+    }
+
+    html.dark-mode .form-control::placeholder {
+      color: #94a3b8;
+    }
+
+    label,
+    .form-label,
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--text-main);
+    }
+
+    small,
+    .text-muted,
+    .form-text {
+      color: var(--text-muted) !important;
+    }
+
+    .btn {
+      border-radius: 12px;
+      font-weight: 700;
+      padding: 0.62rem 1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      border: none;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.03);
+    }
+
+    .btn-ajouter {
+      background: linear-gradient(135deg, var(--accent-color), #ea580c) !important;
+      border: none !important;
+      color: #fff !important;
+    }
+
+    .btn-ajouter:hover {
+      filter: brightness(1.03);
+    }
+
+    .footer-note {
+      color: var(--text-muted);
+      text-align: center;
+      font-size: 0.92rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 991.98px) {
+      .navbar-actions {
         margin-top: 1rem;
       }
-      .nav-links-section .nav-item {
+
+      .nav-pill,
+      .logout-btn,
+      .user-chip {
         width: 100%;
-        margin-bottom: 8px;
+        justify-content: center;
       }
-      .btn, .nav-link {
+
+      .icon-btn {
         width: 100%;
+        border-radius: 14px;
       }
-      .logo-navbar {
-        height: 45px;
-      }
-      .nav-links-section {
-        flex-direction: column;
-        gap: 10px;
-        width: 100%;
-      }
-      .nav-links-section a, .nav-links-section button {
-        width: 100%;
-      }
-      .nav-links-section .dropdown {
-        width: 100%;
+
+      .content-wrapper {
+        padding: 1rem;
       }
     }
 
-    .nav-links-section a, .nav-links-section button, .nav-links-section span {
-      font-size: 0.95rem;
+        /* MODE SOMBRE - TABLEAU PRODUITS */
+    html.dark-mode #resultats-produits,
+    html.dark-mode #resultats-produits * {
+      color: #f0f0f0 !important;
     }
 
-    .admin-link .nav-link {
-      color: #007bff;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      border-radius: 8px;
-      padding: 6px 12px;
+    html.dark-mode #resultats-produits .table,
+    html.dark-mode #resultats-produits .table td,
+    html.dark-mode #resultats-produits .table th,
+    html.dark-mode #resultats-produits .table tbody tr,
+    html.dark-mode #resultats-produits .table thead tr {
+      color: #f0f0f0 !important;
     }
 
-    .admin-link .nav-link:hover {
-      background-color: #007bff;
-      color: white;
-      box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
-      transform: translateY(-2px);
+    html.dark-mode #resultats-produits .text-muted,
+    html.dark-mode #resultats-produits small {
+      color: #cbd5e1 !important;
     }
 
-    /* MODE SOMBRE COMPLET */
-    html.dark-mode body {
-      background-color: #1a1a1a !important;
+    html.dark-mode #resultats-produits .text-dark,
+    html.dark-mode #resultats-produits .fw-bold,
+    html.dark-mode #resultats-produits .fw-semibold {
       color: #f0f0f0 !important;
     }
-    html.dark-mode .navbar {
-      background-color: #2d2d2d !important;
-    }
-    html.dark-mode .nav-links-section {
-      background: #2d2d2d !important;
-    }
-    html.dark-mode .container {
-      background-color: rgba(45, 45, 45, 0.95) !important;
-      color: #f0f0f0 !important;
-    }
-    html.dark-mode .card {
-      background-color: #2d2d2d !important;
-      color: #f0f0f0 !important;
-    }
-    html.dark-mode .table {
-      color: #f0f0f0 !important;
-      background-color: #2d2d2d !important;
-    }
-    html.dark-mode .table thead th {
-      background-color: #3d3d3d !important;
-      color: #f0f0f0 !important;
-    }
-    html.dark-mode .table-striped tbody tr:nth-of-type(odd) {
-      background-color: #333 !important;
-    }
-    html.dark-mode .table-light {
-      background-color: #3d3d3d !important;
-      color: #f0f0f0 !important;
-    }
-    html.dark-mode .form-control,
-    html.dark-mode .form-select {
-      background-color: #3d3d3d !important;
-      color: #f0f0f0 !important;
-      border-color: #555 !important;
-    }
-    html.dark-mode .form-control:focus,
-    html.dark-mode .form-select:focus {
-      background-color: #4d4d4d !important;
-      color: #f0f0f0 !important;
-      border-color: #777 !important;
-    }
-    html.dark-mode label,
-    html.dark-mode .form-label {
-      color: #f0f0f0 !important;
-    }
-    html.dark-mode h1, html.dark-mode h2, html.dark-mode h3,
-    html.dark-mode h4, html.dark-mode h5, html.dark-mode h6 {
-      color: #f0f0f0 !important;
-    }
-    html.dark-mode .btn-outline-dark {
+
+    html.dark-mode #resultats-produits .btn-outline-dark {
       color: #f0f0f0 !important;
       border-color: #f0f0f0 !important;
     }
-    html.dark-mode .btn-outline-dark:hover {
+
+    html.dark-mode #resultats-produits .btn-outline-dark:hover {
       background-color: #f0f0f0 !important;
       color: #1a1a1a !important;
     }
-    html.dark-mode .dropdown-menu {
-      background-color: #2d2d2d !important;
-    }
-    html.dark-mode .dropdown-item {
+
+    html.dark-mode #resultats-produits .badge.bg-light,
+    html.dark-mode #resultats-produits .bg-light {
+      background-color: #334155 !important;
       color: #f0f0f0 !important;
+      border-color: #475569 !important;
     }
-    html.dark-mode .dropdown-item:hover {
-      background-color: #3d3d3d !important;
-    }
-    html.dark-mode .alert {
-      background-color: #3d3d3d !important;
-      color: #f0f0f0 !important;
-      border-color: #555 !important;
-    }
-    html.dark-mode .bg-light {
-      background-color: #3d3d3d !important;
-    }
-    html.dark-mode .text-dark {
-      color: #f0f0f0 !important;
-    }
-    html.dark-mode .bg-warning-subtle {
-      background-color: #4d4d3d !important;
-    }
-    html.dark-mode small,
-    html.dark-mode .form-text {
-      color: #ccc !important;
+
+    html.dark-mode #resultats-produits a {
+      color: #93c5fd !important;
     }
   </style>
 
+  {% block head %}{% endblock %}
+
   <script>
-    (function() {
+    (function () {
       if (localStorage.getItem('darkMode') === 'true') {
         document.documentElement.classList.add('dark-mode');
       }
@@ -208,147 +409,223 @@
 
     function toggleDarkMode() {
       document.documentElement.classList.toggle('dark-mode');
-      const isDark = document.documentElement.classList.contains('dark-mode');
-      localStorage.setItem('darkMode', isDark);
+      localStorage.setItem(
+        'darkMode',
+        document.documentElement.classList.contains('dark-mode')
+      );
     }
   </script>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-  <div class="container-fluid">
-    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-      <img src="{{ url_for('static', filename='logo_geytoris.png') }}" alt="Logo Geytoris" height="80" class="logo-navbar me-2">
+{% if request.endpoint != 'a_propos' %}
+<nav class="navbar navbar-expand-lg main-navbar sticky-top">
+  <div class="container-fluid px-3 px-lg-4">
+    <a class="navbar-brand d-flex align-items-center gap-3" href="{{ url_for('index') }}">
+      <img
+        src="{{ url_for('static', filename='logo_geytoris.png') }}"
+        alt="Logo Geytoris"
+        class="brand-logo"
+      >
+      <div>
+        <div class="brand-title">Geytoris</div>
+        <div class="brand-subtitle">Gestion de stock professionnelle</div>
+      </div>
     </a>
 
+    <button
+      class="navbar-toggler border-0 shadow-none"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#mainNavbar"
+      aria-controls="mainNavbar"
+      aria-expanded="false"
+      aria-label="Basculer la navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
     {% if current_user.is_authenticated %}
-    <div class="d-flex flex-wrap justify-content-center align-items-center gap-3 nav-links-section px-3 py-2">
-      <a class="btn btn-light fw-bold" href="{{ url_for('index') }}">
-        <i class="bi bi-house-door-fill"></i> Accueil
-      </a>
+    <div class="collapse navbar-collapse" id="mainNavbar">
+      <div class="ms-auto d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center gap-2 navbar-actions">
 
-      <span class="d-flex align-items-center fw-bold">
-        Connecté : {{ current_user.nom_utilisateur }}
-        <a href="{{ url_for('modifier_infos_boutique') }}" class="btn btn-light btn-sm rounded-circle ms-2" style="width: 36px; height: 36px;">
-          <i class="bi bi-gear-fill"></i>
+        <a class="nav-pill" href="{{ url_for('index') }}">
+          <i class="bi bi-house-door-fill me-1"></i> Accueil
         </a>
-      </span>
 
-      <a class="btn btn-light fw-bold" href="{{ url_for('corbeille') }}">
-        <i class="bi bi-trash3"></i> Corbeille
-      </a>
+        <a class="nav-pill" href="{{ url_for('corbeille') }}">
+          <i class="bi bi-trash3 me-1"></i> Corbeille
+        </a>
 
-      <button onclick="toggleDarkMode()" class="btn btn-outline-secondary fw-bold">
-        <i class="bi bi-moon-fill"></i>
-      </button>
-
-      <button id="btn-deconnexion" class="btn btn-outline-danger fw-bold">
-        Déconnexion
-      </button>
-
-      <div class="dropdown">
-        <button class="btn btn-outline-dark dropdown-toggle" data-bs-toggle="dropdown">
-          <i class="bi bi-list"></i> Menu
+        <button
+          onclick="toggleDarkMode()"
+          class="icon-btn"
+          type="button"
+          title="Mode sombre"
+        >
+          <i class="bi bi-moon-stars-fill"></i>
         </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('fournisseurs') }}">📦 Fournisseurs</a></li>
-          <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('stats') }}">📊 Statistiques</a></li>
-          <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('liste_retours') }}">🔁 Retours</a></li>
-          <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('recus') }}">🧾 Reçus</a></li>
-          <li><a class="dropdown-item fw-semibold text-dark" href="{{ url_for('dettes') }}">💳 Dettes</a></li>
 
-          {% if current_user.is_authenticated and current_user.email == "gkhadim202@gmail.com" %}
-          <li class="nav-item admin-link ms-3">
-            <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
-              <i class="fas fa-user-shield"></i> Espace Admin
-            </a>
-          </li>
-          {% endif %}
-        </ul>
+        <div class="dropdown">
+          <button
+            class="nav-pill dropdown-toggle"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="bi bi-grid-3x3-gap-fill me-1"></i> Menu
+          </button>
+
+          <ul class="dropdown-menu dropdown-menu-end">
+
+            <li>
+              <span class="dropdown-item-text fw-bold">
+                <i class="bi bi-person-circle me-2"></i>{{ current_user.nom_utilisateur }}
+              </span>
+            </li>
+
+            <li>
+              <a class="dropdown-item" href="{{ url_for('fournisseurs') }}">
+                <i class="bi bi-truck me-2"></i> Fournisseurs
+              </a>
+            </li>
+
+            <li>
+              <a class="dropdown-item" href="{{ url_for('stats') }}">
+                <i class="bi bi-bar-chart-line-fill me-2"></i> Statistiques
+              </a>
+            </li>
+
+            <li>
+              <a class="dropdown-item" href="{{ url_for('liste_retours') }}">
+                <i class="bi bi-arrow-repeat me-2"></i> Retours
+              </a>
+            </li>
+
+            <li>
+              <a class="dropdown-item" href="{{ url_for('recus') }}">
+                <i class="bi bi-receipt-cutoff me-2"></i> Reçus
+              </a>
+            </li>
+
+            <li>
+              <a class="dropdown-item" href="{{ url_for('dettes') }}">
+                <i class="bi bi-credit-card-2-front-fill me-2"></i> Dettes
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+
+            <li>
+              <a class="dropdown-item" href="{{ url_for('modifier_infos_boutique') }}">
+                <i class="bi bi-gear-fill me-2"></i> Paramètres de la boutique
+              </a>
+            </li>
+
+            {% if current_user.email == "gkhadim202@gmail.com" %}
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">
+                <i class="bi bi-shield-lock-fill me-2"></i> Espace Admin
+              </a>
+            </li>
+            {% endif %}
+
+          </ul>
+        </div>
+
+        <button id="btn-deconnexion" class="btn btn-outline-danger logout-btn" type="button">
+          <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
+        </button>
+
       </div>
     </div>
     {% endif %}
   </div>
 </nav>
+{% endif %}
+ 
+  <div class="container page-shell">
+    <div class="flash-wrapper mb-3">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
 
-<div class="container mt-3">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
-</div>
+    <div class="content-wrapper">
+      {% block content %}{% endblock %}
+    </div>
 
-<div class="background-blur"></div>
-
-<div class="content">
-  <div class="container my-5">
-    {% block content %}{% endblock %}
+    <div class="footer-note">
+      Geytoris — Une gestion plus simple, plus claire et plus professionnelle.
+    </div>
   </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const btnDeconnexion = document.getElementById('btn-deconnexion');
-    if (btnDeconnexion) {
-      btnDeconnexion.addEventListener('click', function () {
-        Swal.fire({
-          title: 'Se déconnecter ?',
-          text: 'Êtes-vous sûr de vouloir vous déconnecter ?',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonText: 'Oui, déconnecter',
-          cancelButtonText: 'Annuler',
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = "{{ url_for('logout') }}";
-          }
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const btnDeconnexion = document.getElementById('btn-deconnexion');
+
+      if (btnDeconnexion) {
+        btnDeconnexion.addEventListener('click', function () {
+          Swal.fire({
+            title: 'Se déconnecter ?',
+            text: 'Êtes-vous sûr de vouloir vous déconnecter ?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Oui, me déconnecter',
+            cancelButtonText: 'Annuler',
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#2563eb'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              window.location.href = "{{ url_for('logout') }}";
+            }
+          });
+        });
+      }
+
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(function (alert) {
+        setTimeout(function () {
+          const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+          bsAlert.close();
+        }, 3500);
+      });
+
+      document.querySelectorAll('.form-supprimer').forEach(form => {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          const nom = form.dataset.nom || 'cet élément';
+
+          Swal.fire({
+            title: 'Supprimer ?',
+            text: `Voulez-vous vraiment supprimer ${nom} ?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Oui, supprimer',
+            cancelButtonText: 'Annuler'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              form.submit();
+            }
+          });
         });
       });
-    }
-
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(function (alert) {
-      setTimeout(function () {
-        const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-        bsAlert.close();
-      }, 3000);
     });
-  });
+  </script>
 
-  document.querySelectorAll('.form-supprimer').forEach(form => {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      const nom = form.dataset.nom || 'ce produit';
-      Swal.fire({
-        title: 'Supprimer ?',
-        text: `Voulez-vous vraiment supprimer ${nom} ?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Oui, supprimer',
-        cancelButtonText: 'Annuler'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          form.submit();
-        }
-      });
-    });
-  });
-</script>
-
-{% block scripts %}{% endblock %}
-
+  {% block scripts %}{% endblock %}
 </body>
 </html>

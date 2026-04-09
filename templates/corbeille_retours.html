@@ -1,61 +1,403 @@
 {% extends 'base.html' %}
 {% block title %}Corbeille des retours{% endblock %}
 
-{% block content %}
-<div class="container mt-5">
+{% block head %}
+<style>
+  .corbeille-retours-wrapper {
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 0.8rem 0 0.5rem;
+  }
 
-  <!-- Titre + Bouton retour -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">🗑️ Corbeille des retours</h2>
-    <a href="{{ url_for('liste_retours') }}" class="btn btn-light text-dark shadow-sm px-3 py-2">
-  <i class="bi bi-arrow-left-circle me-1"></i> Retour aux retours
-</a>
+  .corbeille-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.6rem;
+  }
+
+  .corbeille-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .corbeille-logo-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 0.45rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .corbeille-logo-box img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+
+  .corbeille-title-block p {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 4px;
+  }
+
+  .corbeille-title-block h1 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.2rem;
+  }
+
+  .corbeille-title-block .subtitle {
+    color: #6b7280;
+    font-size: 0.94rem;
+    margin: 0;
+  }
+
+  .corbeille-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-corbeille-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.18s ease;
+  }
+
+  .btn-corbeille-action:hover {
+    background: #f9fafb;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    color: #111827;
+  }
+
+  .corbeille-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .summary-card {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 1.25rem 1.35rem;
+  }
+
+  .summary-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 8px;
+  }
+
+  .summary-value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .summary-sub {
+    color: #6b7280;
+    font-size: 0.88rem;
+    margin-top: 6px;
+  }
+
+  .corbeille-table-card {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  .corbeille-table-header {
+    padding: 1.35rem 1.4rem 0.8rem;
+  }
+
+  .corbeille-table-header h5 {
+    margin: 0 0 4px;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .corbeille-table-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.92rem;
+  }
+
+  .corbeille-table-wrap {
+    padding: 0 1rem 1rem;
+  }
+
+  .corbeille-table {
+    margin-bottom: 0;
+  }
+
+  .corbeille-table thead th {
+    white-space: nowrap;
+  }
+
+  .date-cell {
+    color: #6b7280;
+    font-size: 0.92rem;
+  }
+
+  .produit-cell {
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .quantite-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.10);
+    color: #dc2626;
+    font-weight: 700;
+    font-size: 0.88rem;
+  }
+
+  .motif-cell {
+    color: #6b7280;
+    font-size: 0.93rem;
+  }
+
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .empty-state {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-align: center;
+    padding: 3rem 1.5rem;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    color: #9ca3af;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-title {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.35rem;
+  }
+
+  .empty-text {
+    color: #6b7280;
+    margin-bottom: 0;
+  }
+
+  /* Dark mode */
+  html.dark-mode .corbeille-logo-box,
+  html.dark-mode .summary-card,
+  html.dark-mode .corbeille-table-card,
+  html.dark-mode .empty-state {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.22) !important;
+  }
+
+  html.dark-mode .corbeille-title-block p,
+  html.dark-mode .summary-label,
+  html.dark-mode .date-cell,
+  html.dark-mode .motif-cell,
+  html.dark-mode .empty-icon {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .corbeille-title-block h1,
+  html.dark-mode .summary-value,
+  html.dark-mode .corbeille-table-header h5,
+  html.dark-mode .produit-cell,
+  html.dark-mode .empty-title {
+    color: #f8fafc !important;
+  }
+
+  html.dark-mode .corbeille-title-block .subtitle,
+  html.dark-mode .corbeille-table-header p,
+  html.dark-mode .summary-sub,
+  html.dark-mode .empty-text {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .btn-corbeille-action {
+    background: #111827 !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+    box-shadow: none !important;
+  }
+
+  html.dark-mode .btn-corbeille-action:hover {
+    background: #1f2937 !important;
+    color: #ffffff !important;
+  }
+
+  html.dark-mode .quantite-badge {
+    background: rgba(248, 113, 113, 0.16) !important;
+    color: #fca5a5 !important;
+  }
+
+  @media (max-width: 768px) {
+    .corbeille-topbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .corbeille-actions {
+      width: 100%;
+    }
+
+    .btn-corbeille-action {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+
+    .corbeille-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="corbeille-retours-wrapper">
+
+  <div class="corbeille-topbar">
+    <div class="corbeille-brand">
+      <div class="corbeille-logo-box">
+        <img src="{{ url_for('static', filename='logo_geytoris.png') }}" alt="Logo Geytoris">
+      </div>
+
+      <div class="corbeille-title-block">
+        <p>Corbeille</p>
+        <h1>Corbeille des retours</h1>
+        <p class="subtitle">Restaurez ou supprimez définitivement les retours placés dans la corbeille.</p>
+      </div>
+    </div>
+
+    <div class="corbeille-actions">
+      <a href="{{ url_for('liste_retours') }}" class="btn-corbeille-action">
+        <span>↩️</span> Retour aux retours
+      </a>
+    </div>
   </div>
 
   {% if retours %}
-  <div class="table-responsive">
-    <table class="table table-bordered table-dark table-hover text-center align-middle">
-      <thead class="table-light text-dark">
-        <tr>
-          <th>Date</th>
-          <th>Produit</th>
-          <th>Quantité</th>
-          <th>Motif</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for retour in retours %}
-        <tr>
-          <td>{{ retour.date_retour.strftime('%d/%m/%Y %H:%M') }}</td>
-          <td>{{ retour.produit.nom }}</td>
-          <td>{{ retour.quantite_retournee }}</td>
-          <td>{{ retour.motif or '-' }}</td>
-          <td class="d-flex justify-content-center gap-2">
-            <form method="POST" action="{{ url_for('restaurer_retour', retour_id=retour.id) }}" class="d-inline">
-              <button type="submit" class="btn btn-success btn-sm">
-                <i class="bi bi-arrow-counterclockwise"></i> Restaurer
-              </button>
-            </form>
-            <form method="POST" action="{{ url_for('supprimer_retour_definitif', retour_id=retour.id) }}"
-                  class="d-inline form-supprimer-definitif"
-                  data-produit="{{ retour.produit.nom }}">
-              <button type="submit" class="btn btn-danger btn-sm">
-                <i class="bi bi-trash3-fill"></i> Supprimer
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="alert alert-secondary text-center" role="alert">
-    Aucun retour dans la corbeille.
-  </div>
-  {% endif %}
+    <div class="corbeille-summary">
+      <div class="summary-card">
+        <div class="summary-label">Retours supprimés</div>
+        <div class="summary-value">{{ retours|length }}</div>
+        <div class="summary-sub">éléments actuellement dans la corbeille</div>
+      </div>
 
+      <div class="summary-card">
+        <div class="summary-label">Produits concernés</div>
+        <div class="summary-value">{{ retours|length }}</div>
+        <div class="summary-sub">retours pouvant être restaurés</div>
+      </div>
+    </div>
+
+    <div class="corbeille-table-card">
+      <div class="corbeille-table-header">
+        <h5>Retours supprimés</h5>
+        <p>Vous pouvez restaurer un retour ou le supprimer définitivement.</p>
+      </div>
+
+      <div class="corbeille-table-wrap">
+        <div class="table-responsive">
+          <table class="table corbeille-table align-middle text-center">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Produit</th>
+                <th>Quantité</th>
+                <th>Motif</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for retour in retours %}
+              <tr>
+                <td class="date-cell">{{ retour.date_retour.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td class="produit-cell">{{ retour.produit.nom }}</td>
+                <td>
+                  <span class="quantite-badge">{{ retour.quantite_retournee }}</span>
+                </td>
+                <td class="motif-cell">{{ retour.motif or '-' }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <form method="POST" action="{{ url_for('restaurer_retour', retour_id=retour.id) }}" class="d-inline">
+                      <button type="submit" class="btn btn-success btn-sm">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurer
+                      </button>
+                    </form>
+
+                    <form method="POST"
+                          action="{{ url_for('supprimer_retour_definitif', retour_id=retour.id) }}"
+                          class="d-inline form-supprimer-definitif"
+                          data-produit="{{ retour.produit.nom }}">
+                      <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash3-fill me-1"></i>Supprimer
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🗑️</div>
+      <div class="empty-title">Aucun retour dans la corbeille</div>
+      <p class="empty-text">Les retours supprimés apparaîtront ici.</p>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}
 

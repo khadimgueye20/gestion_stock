@@ -2,55 +2,440 @@
 
 {% block title %}Corbeille{% endblock %}
 
+{% block head %}
+<style>
+  .corbeille-produits-wrapper {
+    max-width: 1150px;
+    margin: 0 auto;
+    padding: 0.8rem 0 0.5rem;
+  }
+
+  .corbeille-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.6rem;
+  }
+
+  .corbeille-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .corbeille-logo-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 0.45rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .corbeille-logo-box img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+
+  .corbeille-title-block p {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 4px;
+  }
+
+  .corbeille-title-block h1 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.2rem;
+  }
+
+  .corbeille-title-block .subtitle {
+    color: #6b7280;
+    font-size: 0.94rem;
+    margin: 0;
+  }
+
+  .corbeille-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-corbeille-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.18s ease;
+  }
+
+  .btn-corbeille-action:hover {
+    background: #f9fafb;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    color: #111827;
+  }
+
+  .corbeille-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .summary-card {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 1.25rem 1.35rem;
+  }
+
+  .summary-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 8px;
+  }
+
+  .summary-value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .summary-sub {
+    color: #6b7280;
+    font-size: 0.88rem;
+    margin-top: 6px;
+  }
+
+  .corbeille-table-card {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  .corbeille-table-header {
+    padding: 1.35rem 1.4rem 0.8rem;
+  }
+
+  .corbeille-table-header h5 {
+    margin: 0 0 4px;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .corbeille-table-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.92rem;
+  }
+
+  .corbeille-table-wrap {
+    padding: 0 1rem 1rem;
+  }
+
+  .corbeille-table {
+    margin-bottom: 0;
+  }
+
+  .corbeille-table thead th {
+    white-space: nowrap;
+  }
+
+  .id-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    padding: 0.28rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(31, 111, 235, 0.08);
+    color: #1d4ed8;
+    font-weight: 700;
+    font-size: 0.84rem;
+  }
+
+  .produit-cell {
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .description-cell {
+    color: #6b7280;
+    font-size: 0.93rem;
+  }
+
+  .quantite-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(245, 158, 11, 0.10);
+    color: #b45309;
+    font-weight: 700;
+    font-size: 0.88rem;
+  }
+
+  .prix-cell {
+    font-weight: 700;
+    color: #059669;
+  }
+
+  .action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .empty-state {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-align: center;
+    padding: 3rem 1.5rem;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    color: #9ca3af;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-title {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.35rem;
+  }
+
+  .empty-text {
+    color: #6b7280;
+    margin-bottom: 0;
+  }
+
+  /* Dark mode */
+  html.dark-mode .corbeille-logo-box,
+  html.dark-mode .summary-card,
+  html.dark-mode .corbeille-table-card,
+  html.dark-mode .empty-state {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.22) !important;
+  }
+
+  html.dark-mode .corbeille-title-block p,
+  html.dark-mode .summary-label,
+  html.dark-mode .description-cell,
+  html.dark-mode .empty-icon {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .corbeille-title-block h1,
+  html.dark-mode .summary-value,
+  html.dark-mode .corbeille-table-header h5,
+  html.dark-mode .produit-cell,
+  html.dark-mode .empty-title {
+    color: #f8fafc !important;
+  }
+
+  html.dark-mode .corbeille-title-block .subtitle,
+  html.dark-mode .corbeille-table-header p,
+  html.dark-mode .summary-sub,
+  html.dark-mode .empty-text {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .btn-corbeille-action {
+    background: #111827 !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+    box-shadow: none !important;
+  }
+
+  html.dark-mode .btn-corbeille-action:hover {
+    background: #1f2937 !important;
+    color: #ffffff !important;
+  }
+
+  html.dark-mode .id-badge {
+    background: rgba(96, 165, 250, 0.12) !important;
+    color: #93c5fd !important;
+  }
+
+  html.dark-mode .quantite-badge {
+    background: rgba(245, 158, 11, 0.18) !important;
+    color: #fcd34d !important;
+  }
+
+  html.dark-mode .prix-cell {
+    color: #34d399 !important;
+  }
+
+  @media (max-width: 768px) {
+    .corbeille-topbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .corbeille-actions {
+      width: 100%;
+    }
+
+    .btn-corbeille-action {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+
+    .corbeille-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<h2 class="mb-4">Produits supprimés (corbeille)</h2>
-<a href="{{ url_for('index') }}" class="btn btn-outline-secondary mb-4">
-  ← Retour à l’accueil
-</a>
+<div class="corbeille-produits-wrapper">
 
-{% if produits %}
-  <table class="table table-bordered table-hover text-center">
-    <thead class="table-light">
-      <tr>
-        <th>ID</th>
-        <th>Nom</th>
-        <th>Description</th>
-        <th>Quantité</th>
-        <th>Prix unitaire</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for produit in produits %}
-      <tr>
-        <td>{{ produit.id }}</td>
-        <td>{{ produit.nom }}</td>
-        <td>{{ produit.description }}</td>
-        <td>{{ produit.quantite }}</td>
-        <td>{{ produit.prix_unitaire }} FCFA</td>
-        <td>
-          <!-- Restaurer -->
-          <form action="{{ url_for('restaurer_produit', id=produit.id) }}" method="POST" style="display:inline;">
-            <button class="btn btn-success btn-sm" type="submit">Restaurer</button>
-          </form>
+  <div class="corbeille-topbar">
+    <div class="corbeille-brand">
+      <div class="corbeille-logo-box">
+        <img src="{{ url_for('static', filename='logo_geytoris.png') }}" alt="Logo Geytoris">
+      </div>
 
-          <!-- Suppression définitive -->
-          <form method="POST" action="{{ url_for('supprimer_definitif_produit', id=produit.id) }}" 
-                class="form-supprimer-def" data-nom="{{ produit.nom }}" style="display:inline;">
-            <button type="submit" class="btn btn-danger btn-sm">Supprimer définitivement</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% else %}
-  <div class="alert alert-info">Aucun produit dans la corbeille.</div>
-{% endif %}
+      <div class="corbeille-title-block">
+        <p>Corbeille</p>
+        <h1>Produits supprimés</h1>
+        <p class="subtitle">Restaurez ou supprimez définitivement les produits placés dans la corbeille.</p>
+      </div>
+    </div>
+
+    <div class="corbeille-actions">
+      <a href="{{ url_for('index') }}" class="btn-corbeille-action">
+        <span>↩️</span> Retour à l’accueil
+      </a>
+    </div>
+  </div>
+
+  {% if produits %}
+    <div class="corbeille-summary">
+      <div class="summary-card">
+        <div class="summary-label">Produits supprimés</div>
+        <div class="summary-value">{{ produits|length }}</div>
+        <div class="summary-sub">éléments actuellement dans la corbeille</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Stock concerné</div>
+        <div class="summary-value">{{ produits | sum(attribute='quantite') }}</div>
+        <div class="summary-sub">unités supprimées</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Valeur estimée</div>
+        <div class="summary-value">
+          {{ (produits | sum(attribute='prix_unitaire')) | round(0) }} FCFA
+        </div>
+        <div class="summary-sub">somme des prix unitaires</div>
+      </div>
+    </div>
+
+    <div class="corbeille-table-card">
+      <div class="corbeille-table-header">
+        <h5>Liste des produits supprimés</h5>
+        <p>Vous pouvez restaurer un produit ou le supprimer définitivement.</p>
+      </div>
+
+      <div class="corbeille-table-wrap">
+        <div class="table-responsive">
+          <table class="table corbeille-table align-middle text-center">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Description</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for produit in produits %}
+              <tr>
+                <td>
+                  <span class="id-badge">{{ produit.id }}</span>
+                </td>
+                <td class="produit-cell">{{ produit.nom }}</td>
+                <td class="description-cell">{{ produit.description or "-" }}</td>
+                <td>
+                  <span class="quantite-badge">{{ produit.quantite }}</span>
+                </td>
+                <td class="prix-cell">{{ produit.prix_unitaire }} FCFA</td>
+                <td>
+                  <div class="action-buttons">
+                    <form action="{{ url_for('restaurer_produit', id=produit.id) }}" method="POST" class="d-inline">
+                      <button class="btn btn-success btn-sm" type="submit">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurer
+                      </button>
+                    </form>
+
+                    <form method="POST"
+                          action="{{ url_for('supprimer_definitif_produit', id=produit.id) }}"
+                          class="form-supprimer-def d-inline"
+                          data-nom="{{ produit.nom }}">
+                      <button type="submit" class="btn btn-danger btn-sm">
+                        <i class="bi bi-trash3-fill me-1"></i>Supprimer
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🗑️</div>
+      <div class="empty-title">Aucun produit dans la corbeille</div>
+      <p class="empty-text">Les produits supprimés apparaîtront ici.</p>
+    </div>
+  {% endif %}
+</div>
 {% endblock %}
 
 {% block scripts %}
-<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   document.querySelectorAll('.form-supprimer-def').forEach(form => {

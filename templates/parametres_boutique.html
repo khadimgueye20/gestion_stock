@@ -3,39 +3,175 @@
 {% block title %}Paramètres de la boutique{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-  <div class="card shadow-sm p-4">
-    <h2 class="mb-4">Paramètres de la boutique</h2>
+<div class="container-fluid px-0">
 
-    <form method="POST" enctype="multipart/form-data">
-      <div class="mb-3">
-        <label for="nom_boutique" class="form-label">Nom de la boutique</label>
-        <input type="text" class="form-control" name="nom_boutique" value="{{ current_user.nom_boutique or '' }}">
+  <!-- EN-TÊTE -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4 p-lg-5 d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+      
+      <div class="d-flex align-items-start gap-3">
+        <div class="rounded-4 d-flex align-items-center justify-content-center"
+             style="width:60px;height:60px;background:rgba(31,111,235,0.12)">
+          <i class="bi bi-shop fs-3 text-primary"></i>
+        </div>
+
+        <div>
+          <h2 class="fw-bold mb-1">Paramètres de la boutique</h2>
+          <p class="text-muted mb-0">
+            Configurez les informations de votre boutique visibles sur les reçus et documents.
+          </p>
+        </div>
       </div>
 
-      <div class="mb-3">
-        <label for="adresse_boutique" class="form-label">Adresse</label>
-        <input type="text" class="form-control" name="adresse_boutique" value="{{ current_user.adresse_boutique or '' }}">
-      </div>
-
-      <div class="mb-3">
-        <label for="telephone_boutique" class="form-label">Téléphone</label>
-        <input type="text" class="form-control" name="telephone_boutique" value="{{ current_user.telephone_boutique or '' }}">
-      </div>
-
-      <div class="mb-3">
-        <label for="logo" class="form-label">Logo de la boutique</label>
-        <input type="file" class="form-control" name="logo">
-        {% if current_user.logo %}
-          <div class="mt-2">
-            <p class="mb-1">Logo actuel :</p>
-            <img src="{{ url_for('static', filename=current_user.logo.split('static/')[-1]) }}" alt="Logo actuel" height="100" class="border rounded">
-          </div>
-        {% endif %}
-      </div>
-
-      <button type="submit" class="btn btn-primary">Enregistrer</button>
-    </form>
+    </div>
   </div>
+
+  <!-- FORMULAIRE -->
+  <form method="POST" enctype="multipart/form-data">
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-body p-4">
+
+        <div class="row g-4">
+
+          <!-- NOM -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Nom de la boutique</label>
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-light border-end-0">
+                <i class="bi bi-building text-primary"></i>
+              </span>
+              <input type="text"
+                     class="form-control border-start-0"
+                     name="nom_boutique"
+                     placeholder="Ex : Boutique Dakar Market"
+                     value="{{ current_user.nom_boutique or '' }}">
+            </div>
+          </div>
+
+          <!-- TELEPHONE -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Téléphone</label>
+            <div class="input-group input-group-lg">
+              <span class="input-group-text bg-light border-end-0">
+                <i class="bi bi-telephone-fill text-success"></i>
+              </span>
+              <input type="text"
+                     class="form-control border-start-0"
+                     name="telephone_boutique"
+                     placeholder="Ex : 77 123 45 67"
+                     value="{{ current_user.telephone_boutique or '' }}">
+            </div>
+          </div>
+
+          <!-- ADRESSE -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">Adresse</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light align-items-start pt-3">
+                <i class="bi bi-geo-alt-fill text-danger"></i>
+              </span>
+              <textarea
+                class="form-control"
+                name="adresse_boutique"
+                rows="3"
+                placeholder="Adresse complète de la boutique"
+              >{{ current_user.adresse_boutique or '' }}</textarea>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- LOGO -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-body p-4">
+
+        <h5 class="fw-bold mb-3">Logo de la boutique</h5>
+
+        <div class="row g-4 align-items-center">
+
+          <!-- Aperçu -->
+          <div class="col-md-4 text-center">
+            <div class="border rounded-4 p-3 bg-light">
+              {% if current_user.logo %}
+                <img
+                  src="{{ url_for('static', filename=current_user.logo.split('static/')[-1]) }}"
+                  alt="Logo actuel"
+                  class="img-fluid"
+                  style="max-height: 120px;"
+                >
+              {% else %}
+                <div class="text-muted">
+                  <i class="bi bi-image fs-1"></i>
+                  <p class="mt-2 mb-0">Aucun logo</p>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Upload -->
+          <div class="col-md-8">
+            <label class="form-label fw-semibold">Changer le logo</label>
+            <input type="file" class="form-control form-control-lg" name="logo">
+
+            <small class="text-muted d-block mt-2">
+              Formats recommandés : PNG, JPG — Taille idéale : carré (logo).
+            </small>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+
+        <div>
+          <h6 class="fw-bold mb-1">Enregistrement</h6>
+          <p class="text-muted small mb-0">
+            Ces informations apparaîtront sur vos reçus et documents officiels.
+          </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+            Annuler
+          </a>
+
+          <button type="submit" class="btn btn-primary rounded-pill px-4">
+            <i class="bi bi-save2-fill me-2"></i>Enregistrer
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </form>
 </div>
+
+<style>
+/* Hover logo */
+.card img {
+  transition: 0.3s ease;
+}
+
+.card img:hover {
+  transform: scale(1.05);
+}
+
+/* Dark mode adaptation */
+.dark-mode .bg-light {
+  background-color: #334155 !important;
+}
+
+.dark-mode .input-group-text {
+  background-color: #1e293b !important;
+}
+</style>
+
 {% endblock %}

@@ -3,154 +3,806 @@
 
 {% block content %}
 <style>
-  body, html {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    font-family: 'Quicksand', sans-serif;
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-hover: #D9B85E;
+    --gold-light: #E2C97E;
+    --gold-border: rgba(201,168,76,0.18);
+    --gold-bg: rgba(201,168,76,0.07);
+    --bg: #080705;
+    --bg-card: #0d0b08;
+    --bg-section: rgba(255,255,255,0.025);
+    --text-muted: rgba(255,255,255,0.50);
+    --text-soft: rgba(255,255,255,0.28);
+    --white-soft: rgba(255,255,255,0.86);
   }
 
-  .background-blur {
+  .ap-page {
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #fff;
+    position: relative;
+    overflow-x: hidden;
+    border-radius: 24px;
+  }
+
+  .ap-page::before {
+    content: '';
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('{{ url_for('static', filename='fond.jpg') }}') center center / cover no-repeat;
-    filter: blur(4px);
-    z-index: -1;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 10% 30%, rgba(201,168,76,0.09) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(201,168,76,0.05) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
   }
 
-  .a-propos-container {
-    background-color: rgba(255, 255, 255, 0.95);
-    color: #333;
-    padding: 40px 30px;
-    border-radius: 16px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2);
-    max-width: 850px;
-    margin: 5rem auto;
+  .ap-page::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+    background-size: 42px 42px;
+    pointer-events: none;
+    z-index: 0;
   }
 
-  .texte-titre {
-    color: #003366;
+  .ap-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  /* Top nav */
+  .ap-topnav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 52px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .brand-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.96);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(201,168,76,0.3);
+    flex-shrink: 0;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.18);
+  }
+
+  .brand-box img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+
+  .brand-info { display: flex; flex-direction: column; gap: 2px; }
+
+  .brand-name {
+    font-size: 14px;
     font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .brand-sub {
+    font-size: 10px;
+    color: rgba(201,168,76,0.42);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #080705;
+    text-decoration: none;
+    background: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 9px 16px;
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(201,168,76,0.28);
+    transition: background .2s, box-shadow .2s, transform .1s;
+  }
+
+  .btn-back svg {
+    width: 13px;
+    height: 13px;
+    stroke: #080705;
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .btn-back:hover {
+    background: var(--gold-hover);
+    box-shadow: 0 6px 18px rgba(201,168,76,0.36);
+    transform: translateY(-1px);
+  }
+
+  /* Hero */
+  .hero {
     text-align: center;
+    margin-bottom: 38px;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 999px;
+    background: rgba(201,168,76,0.06);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(201,168,76,0.8);
     margin-bottom: 20px;
   }
 
-  .image-demo {
-    max-height: 280px;
-    border-radius: 12px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  }
-
-  .a-propos-container h4 {
-    margin-top: 25px;
-    font-weight: 700;
-    color: #00558a;
-  }
-
-  ul li {
-    margin-bottom: 6px;
-    padding-left: 5px;
-  }
-
-  .btn-retour {
-    background-color: #00558a;
-    color: white;
-    font-weight: 600;
-    border-radius: 30px;
-    padding: 8px 18px;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-  }
-
-  .btn-retour:hover {
-    background-color: #003f6c;
-    color: #fff;
-    box-shadow: 0 0 8px rgba(0,0,0,0.2);
-  }
-
-  .img-admin {
-    max-width: 150px;
+  .hero-dot {
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    border: 3px solid #00558a;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    transition: transform 0.3s ease;
+    background: var(--gold);
+    box-shadow: 0 0 0 4px rgba(201,168,76,0.14);
   }
 
-  .img-admin:hover {
-    transform: scale(1.05);
+  .hero-title {
+    font-size: 40px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.03em;
+    line-height: 1.18;
+    margin-bottom: 14px;
   }
 
-  .a-propos-container {
-    padding: 40px 15px;
-}
+  .hero-title em {
+    font-style: normal;
+    color: var(--gold);
+  }
 
+  .hero-desc {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  /* quick stats */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin: 0 0 42px;
+  }
+
+  .stat-card {
+    background: var(--bg-section);
+    border: 1px solid rgba(201,168,76,0.10);
+    border-radius: 16px;
+    padding: 18px 16px;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* Demo */
+  .demo-wrap {
+    border: 1px solid rgba(201,168,76,0.14);
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 40px;
+    background: var(--bg-section);
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+  }
+
+  .demo-topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(201,168,76,0.10);
+    background: rgba(255,255,255,0.02);
+  }
+
+  .demo-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(201,168,76,0.22);
+  }
+
+  .demo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 70%, rgba(8,7,5,0.6) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .demo-wrap img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* content grid */
+  .content-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .section-card {
+    background: var(--bg-section);
+    border: 1px solid rgba(201,168,76,0.1);
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 16px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .section-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .section-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--gold);
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+
+  .section-body {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 14px;
+  }
+
+  .section-body strong {
+    color: var(--white-soft);
+  }
+
+  /* features */
+  .feat-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .feat-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .feat-bullet {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .feat-bullet svg {
+    width: 10px;
+    height: 10px;
+    stroke: var(--gold);
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* process */
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .step-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .step-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(201,168,76,0.10);
+    border: 1px solid rgba(201,168,76,0.22);
+    color: var(--gold-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .step-text {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  /* security note */
+  .security-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: rgba(201,168,76,0.05);
+    border: 1px solid rgba(201,168,76,0.14);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: rgba(201,168,76,0.74);
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  .security-note svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--gold);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .sep {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 40px 0;
+    color: rgba(201,168,76,0.2);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .sep::before, .sep::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(201,168,76,0.1);
+  }
+
+  /* author */
+  .author-card {
+    background: var(--bg-section);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .author-avatar {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(201,168,76,0.35);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 4px rgba(201,168,76,0.08);
+  }
+
+  .author-info { flex: 1; min-width: 0; }
+
+  .author-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .author-role {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 14px;
+  }
+
+  .author-contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+  }
+
+  .author-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: rgba(201,168,76,0.68);
+    text-decoration: none;
+    transition: color .2s;
+  }
+
+  .author-contact:hover { color: var(--gold); }
+
+  .author-contact svg {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  /* CTA */
+  .cta-card {
+    background: linear-gradient(135deg, rgba(201,168,76,0.08), rgba(255,255,255,0.02));
+    border: 1px solid rgba(201,168,76,0.14);
+    border-radius: 18px;
+    padding: 26px;
+    text-align: center;
+    margin-top: 18px;
+  }
+
+  .cta-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+
+  .cta-text {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 540px;
+    margin: 0 auto 18px;
+  }
+
+  .cta-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn-cta,
+  .btn-cta-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all .2s ease;
+  }
+
+  .btn-cta {
+    background: var(--gold);
+    color: #080705;
+    border: 1px solid var(--gold);
+    box-shadow: 0 8px 18px rgba(201,168,76,0.20);
+  }
+
+  .btn-cta:hover {
+    background: var(--gold-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-cta-outline {
+    background: transparent;
+    color: var(--gold-light);
+    border: 1px solid rgba(201,168,76,0.22);
+  }
+
+  .btn-cta-outline:hover {
+    background: rgba(201,168,76,0.06);
+    color: var(--gold);
+  }
+
+  .ap-foot {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.18);
+    margin-top: 48px;
+  }
+
+  @media (max-width: 900px) {
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .hero-title { font-size: 28px; }
+    .author-card { flex-direction: column; text-align: center; }
+    .author-contacts { align-items: center; justify-content: center; }
+    .ap-topnav { flex-wrap: wrap; }
+    .stats-grid { grid-template-columns: 1fr; }
+    .demo-wrap img { height: 220px; }
+  }
 </style>
 
-<div class="background-blur"></div>
+<div class="ap-page">
+  <div class="ap-inner">
 
-<div class="container a-propos-container">
-  <h2 class="texte-titre">À propos de la plateforme Geytoris</h2>
+    <div class="ap-topnav">
+      <a href="{{ url_for('login') }}" class="brand">
+        <div class="brand-box">
+          <img src="{{ url_for('static', filename='logo_geytoris.png') }}" alt="Logo Geytoris">
+        </div>
+        <div class="brand-info">
+          <span class="brand-name">Geytoris</span>
+          <span class="brand-sub">Gestion de stock</span>
+        </div>
+      </a>
 
-  <div class="text-center">
-    <img src="{{ url_for('static', filename='images/geytoris_demo.png') }}" alt="Image de la plateforme" class="img-fluid image-demo">
-  </div>
-
-  <h4>🎯 Objectif de la plateforme</h4>
-  <p>
-    <strong>Geytoris</strong> est une solution digitale conçue pour accompagner les commerçants dans la gestion intelligente de leurs stocks. Grâce à une interface intuitive et des outils efficaces, elle facilite le suivi des ventes, des dettes, des retours et bien plus encore.
-  </p>
-
-  <h4>🔧 Fonctionnalités principales</h4>
-  <ul>
-    <li>Gestion complète des produits, fournisseurs, ventes et retours</li>
-    <li>Génération automatique de reçus PDF</li>
-    <li>Suivi des dettes clients et remboursements</li>
-    <li>Corbeille intelligente (restaurer ou supprimer définitivement)</li>
-    <li>Tableaux de bord statistiques mensuels</li>
-    <li>Interface d'administration pour gérer les utilisateurs</li>
-  </ul>
-
-  <h4>🔐 Sécurité & confidentialité</h4>
-  <p>
-    La plateforme <strong>Geytoris</strong> intègre plusieurs niveaux de sécurité afin de garantir la confidentialité et la protection des données utilisateurs :
-  </p>
-  <ul>
-    <li>Connexion sécurisée avec authentification par mot de passe</li>
-    <li>Vérification par code lors de l’inscription et de la réinitialisation de mot de passe</li>
-    <li>Séparation claire des espaces utilisateurs (multi-commerçants)</li>
-    <li>Protection contre les accès non autorisés à l’interface d’administration</li>
-    <li>Suppression logique avec corbeille pour éviter les pertes accidentelles</li>
-    <li>Traitement des données sensibles conforme aux bonnes pratiques de sécurité</li>
-  </ul>
-  <p><em>La sécurité de vos informations est une priorité. Chaque utilisateur dispose de son propre espace, et les données sont strictement isolées et protégées.</em></p>
-
-  <hr class="my-4">
-
-  <div class="row align-items-center mt-4">
-    <div class="col-md-3 text-center">
-      <img src="{{ url_for('static', filename='images/khadim.jpg') }}" alt="Khadim Gueye" class="img-fluid img-admin">
+      <a href="{{ url_for('login') }}" class="btn-back">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Retour à la connexion
+      </a>
     </div>
-    <div class="col-md-9">
-      <h5 class="fw-bold mb-1" style="color:#00558a;">Khadim GUEYE</h5>
-      <p class="mb-0">Technicien Supérieur en Administration de base de données,</p>
-      <p class="mb-0">Développeur Python et passionné de technologies utiles pour les PME africaines.</p>
-      
-      <p class="mt-3 fw-semibold" style="color: #0d6efd;">
-  📧 Mail : <a href="mailto:gkhadim202@gmail.com" class="text-decoration-none" style="color: #0d6efd;">gkhadim202@gmail.com</a><br>
-  📞 Téléphone : <span style="color: #0d6efd;">+221 77 862 54 33</span>
-</p>
 
+    <div class="hero">
+      <div class="hero-eyebrow">
+        <span class="hero-dot"></span>
+        Plateforme de gestion moderne
+      </div>
+      <div class="hero-title">À propos de <em>Geytoris</em></div>
+      <div class="hero-desc">
+        Une solution digitale pensée pour simplifier la gestion des commerces, améliorer la visibilité sur les stocks et professionnaliser le suivi des ventes, reçus et finances.
+      </div>
     </div>
-  </div>
 
-  <div class="text-center mt-5">
-    <a href="{{ url_for('login') }}" class="btn btn-retour">
-      <i class="bi bi-arrow-left-circle"></i> Retour à la connexion
-    </a>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">Stock</div>
+        <div class="stat-label">Suivi clair et rapide des produits disponibles</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">Ventes</div>
+        <div class="stat-label">Enregistrement fluide des opérations quotidiennes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">Dettes</div>
+        <div class="stat-label">Suivi structuré des paiements et remboursements</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">Reçus</div>
+        <div class="stat-label">Génération professionnelle de reçus et tickets</div>
+      </div>
+    </div>
+
+    <div class="demo-wrap">
+      <div class="demo-topbar">
+        <span class="demo-dot"></span>
+        <span class="demo-dot"></span>
+        <span class="demo-dot"></span>
+      </div>
+      <img src="{{ url_for('static', filename='images/geytoris_demo.png') }}" alt="Aperçu de la plateforme">
+    </div>
+
+    <div class="content-grid">
+      <div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            </div>
+            <div class="section-title">Objectif de la plateforme</div>
+          </div>
+          <div class="section-body">
+            <strong>Geytoris</strong> est une solution digitale conçue pour accompagner les commerçants dans la gestion intelligente de leurs stocks. Elle centralise les produits, fournisseurs, ventes, retours, dettes et reçus dans une seule interface claire.
+          </div>
+          <div class="section-body">
+            L’objectif est simple : permettre aux commerçants de gagner du temps, réduire les erreurs et mieux piloter leur activité au quotidien.
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="section-title">Fonctionnalités principales</div>
+          </div>
+          <ul class="feat-list">
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Gestion complète des produits, fournisseurs, ventes et retours</li>
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Génération automatique de reçus PDF et tickets thermiques</li>
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Suivi des dettes clients et des remboursements</li>
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Corbeille intelligente avec restauration ou suppression définitive</li>
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Tableaux de bord statistiques et historique mensuel</li>
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Interface d’administration pour gérer les comptes utilisateurs</li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="section-title">Sécurité & confidentialité</div>
+          </div>
+          <ul class="feat-list">
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Connexion sécurisée avec authentification par mot de passe</li>
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Vérification par code lors de l'inscription et de la réinitialisation</li>
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Séparation claire des espaces utilisateurs multi-commerçants</li>
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Protection contre les accès non autorisés à l’administration</li>
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Suppression logique pour éviter les pertes accidentelles</li>
+            <li><div class="feat-bullet"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>Respect des bonnes pratiques de traitement des données</li>
+          </ul>
+
+          <div class="security-note">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            Chaque utilisateur dispose de son propre espace isolé et protégé afin de garantir une meilleure confidentialité des données.
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M12 4h9"/><path d="M4 9h16"/><path d="M4 15h16"/><path d="M8 4v16"/></svg>
+            </div>
+            <div class="section-title">Comment ça fonctionne ?</div>
+          </div>
+
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-number">1</div>
+              <div class="step-text">Le commerçant crée son espace et configure les informations de sa boutique.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-number">2</div>
+              <div class="step-text">Il ajoute ses produits, fournisseurs et commence à enregistrer ses ventes.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-number">3</div>
+              <div class="step-text">Les reçus, dettes, remboursements et retours sont suivis automatiquement.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-number">4</div>
+              <div class="step-text">Les statistiques permettent ensuite de mieux comprendre les performances de la boutique.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sep">Développeur</div>
+
+    <div class="author-card">
+      <img
+        src="{{ url_for('static', filename='images/khadim.jpg') }}"
+        alt="Khadim Gueye"
+        class="author-avatar"
+      >
+      <div class="author-info">
+        <div class="author-name">Khadim GUEYE</div>
+        <div class="author-role">
+          Technicien Supérieur en Administration de base de données.<br>
+          Développeur Python, passionné de solutions digitales utiles pour les PME africaines.
+        </div>
+        <div class="author-contacts">
+          <a href="mailto:gkhadim202@gmail.com" class="author-contact">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            gkhadim202@gmail.com
+          </a>
+          <a href="tel:+221778625433" class="author-contact">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            +221 77 862 54 33
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-card">
+      <div class="cta-title">Découvrez une gestion plus simple</div>
+      <div class="cta-text">
+        Geytoris a été pensé pour rendre la gestion commerciale plus claire, plus fiable et plus professionnelle, même pour les petites structures.
+      </div>
+      <div class="cta-actions">
+        <a href="{{ url_for('login') }}" class="btn-cta">Se connecter</a>
+        <a href="{{ url_for('register') }}" class="btn-cta-outline">Créer un compte</a>
+      </div>
+    </div>
+
+    <div class="ap-foot">
+      © 2026 Geytoris — Gestion de stock professionnelle
+    </div>
+
   </div>
 </div>
+
 {% endblock %}

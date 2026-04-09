@@ -4,25 +4,75 @@
     <meta charset="UTF-8">
     <title>Ticket</title>
     <style>
-        body { font-family: monospace; width: 250px; margin: auto; font-size: 14px; }
-        h2, p { text-align: center; margin: 5px 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border-bottom: 1px dashed #000; padding: 4px; text-align: center; }
-        .totaux { margin-top: 10px; font-weight: bold; width: 100%; }
-        .totaux div { display: flex; justify-content: space-between; }
-        hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
+        body {
+            font-family: monospace;
+            width: 250px;
+            margin: auto;
+            font-size: 14px;
+        }
+        h2, p {
+            text-align: center;
+            margin: 5px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border-bottom: 1px dashed #000;
+            padding: 4px;
+            text-align: center;
+        }
+        .totaux {
+            margin-top: 10px;
+            font-weight: bold;
+            width: 100%;
+        }
+        .totaux div {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 3px 0;
+        }
+        hr {
+            border: none;
+            border-top: 1px dashed #000;
+            margin: 10px 0;
+        }
+        .info-client {
+            text-align: left;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+        .info-client p {
+            text-align: left;
+            margin: 2px 0;
+        }
     </style>
 </head>
 <body>
 
 <h2>{{ current_user.nom_boutique.upper() if current_user.nom_boutique else "Nom Boutique" }}</h2>
-<p>📍 {{ current_user.adresse_boutique }}</p>
-<p>📞 {{ current_user.telephone_boutique }}</p>
+<p>📍 {{ current_user.adresse_boutique or "" }}</p>
+<p>📞 {{ current_user.telephone_boutique or "" }}</p>
 
 <hr>
 
 <p>Date : {{ recu.date_creation.strftime('%d/%m/%Y') }} Heure : {{ recu.date_creation.strftime('%H:%M') }}</p>
 <p>Ticket n° : {{ recu.reference }}</p>
+
+<div class="info-client">
+    {% if recu.nom_client %}
+    <p><strong>Client :</strong> {{ recu.nom_client }}</p>
+    {% endif %}
+
+    {% if recu.telephone_client %}
+    <p><strong>Tél :</strong> {{ recu.telephone_client }}</p>
+    {% endif %}
+
+    <p><strong>Adresse livraison :</strong> {{ recu.adresse_livraison or "Non renseignée" }}</p>
+</div>
 
 <hr>
 
@@ -40,8 +90,8 @@
         <tr>
             <td>{{ ligne.produit.nom }}</td>
             <td>{{ ligne.quantite }}</td>
-            <td>{{ "{:,.0f}".format(ligne.prix_unitaire) }}</td>
-            <td>{{ "{:,.0f}".format(ligne.quantite * ligne.prix_unitaire) }}</td>
+            <td>{{ "{:,.0f}".format(ligne.prix_unitaire or 0) }}</td>
+            <td>{{ "{:,.0f}".format((ligne.quantite or 0) * (ligne.prix_unitaire or 0)) }}</td>
         </tr>
     {% endfor %}
     </tbody>
@@ -50,9 +100,37 @@
 <hr>
 
 <div class="totaux">
-    <div><span>Total :</span><span>{{ "{:,.0f}".format(recu.montant_total) }}</span></div>
-    <div><span>Reçu :</span><span>{{ "{:,.0f}".format(recu.montant_paye) }}</span></div>
-    <div><span>Rendu :</span><span>{{ "{:,.0f}".format(recu.monnaie_rendue) }}</span></div>
+    <div>
+        <span>Total produits :</span>
+        <span>{{ "{:,.0f}".format((recu.montant_total or 0) - (recu.prix_livraison or 0)) }}</span>
+    </div>
+
+    <div>
+        <span>Livraison :</span>
+        <span>{{ "{:,.0f}".format(recu.prix_livraison or 0) }}</span>
+    </div>
+
+    <div>
+        <span>Total :</span>
+        <span>{{ "{:,.0f}".format(recu.montant_total or 0) }}</span>
+    </div>
+
+    <div>
+        <span>Reçu :</span>
+        <span>{{ "{:,.0f}".format(recu.montant_paye or 0) }}</span>
+    </div>
+
+    {% if recu.montant_paye < recu.montant_total %}
+    <div>
+        <span>Reste :</span>
+        <span>{{ "{:,.0f}".format((recu.montant_total or 0) - (recu.montant_paye or 0)) }}</span>
+    </div>
+    {% else %}
+    <div>
+        <span>Rendu :</span>
+        <span>{{ "{:,.0f}".format(recu.monnaie_rendue or 0) }}</span>
+    </div>
+    {% endif %}
 </div>
 
 <hr>

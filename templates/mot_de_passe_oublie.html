@@ -1,107 +1,357 @@
-{% extends 'base.html' %}
-{% block content %}
-<style>
-  .background-blur {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('{{ url_for('static', filename='fond.jpg') }}') center center / cover no-repeat;
-    filter: blur(6px);
-    z-index: -1;
-  }
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ app_name }} – Réinitialiser le mot de passe</title>
+  <link rel="icon" href="{{ url_for('static', filename='logo_geytoris.png') }}" type="image/png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .reset-container {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(8px);
-    padding: 40px 30px;
-    border-radius: 16px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.4);
-    max-width: 420px;
-    width: 100%;
-    color: #fff;
-  }
+    :root {
+      --gold:        #C9A84C;
+      --gold-light:  #E2C97E;
+      --gold-border: rgba(201,168,76,0.25);
+      --gold-bg:     rgba(201,168,76,0.08);
+      --bg:          #0f0e0a;
+      --bg-card:     #13120d;
+      --text-muted:  rgba(255,255,255,0.4);
+    }
 
-  .form-label {
-    font-weight: 600;
-    color: #f0f0f0;
-  }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
 
-  .form-control {
-    border-radius: 8px;
-    font-size: 0.95rem;
-  }
+    body {
+      background: var(--bg);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px 16px;
+      position: relative;
+      overflow-x: hidden;
+    }
 
-  h2 {
-    font-weight: 700;
-    color: #ffffff;
-  }
+    /* Subtle background atmosphere */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 40%, rgba(201,168,76,0.07) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 70%, rgba(201,168,76,0.04) 0%, transparent 45%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  .btn-primary {
-    border-radius: 30px;
-    padding: 10px;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: 0.3s ease;
-  }
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.03) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-  .btn-primary:hover {
-    background-color: #0056b3;
-    color: white;
-  }
+    /* Card */
+    .card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg-card);
+      border: 0.5px solid rgba(201,168,76,0.15);
+      border-radius: 16px;
+      padding: 40px 36px;
+    }
 
-  .alert {
-    font-size: 0.95rem;
-  }
+    /* Top: back link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: rgba(201,168,76,0.5);
+      text-decoration: none;
+      border: 0.5px solid rgba(201,168,76,0.2);
+      padding: 5px 12px;
+      border-radius: 999px;
+      margin-bottom: 32px;
+      transition: color .2s, border-color .2s;
+    }
 
-  .text-link {
-    font-size: 0.9rem;
-    color: #ffffff;
-    text-decoration: none;
-  }
+    .back-link:hover { color: var(--gold); border-color: rgba(201,168,76,0.5); }
 
-  .text-link:hover {
-    text-decoration: underline;
-    color: #f8f9fa;
-  }
-</style>
+    .back-link svg {
+      width: 13px;
+      height: 13px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
-<div class="background-blur"></div>
+    /* Icon */
+    .icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: var(--gold-bg);
+      border: 0.5px solid var(--gold-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
 
-<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
-  <div class="reset-container">
+    .icon-wrap svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--gold);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
-    <h2 class="text-center mb-4">🔑 Réinitialiser le mot de passe</h2>
+    /* Heading */
+    .accent-line {
+      width: 28px;
+      height: 2px;
+      background: var(--gold);
+      border-radius: 2px;
+      margin-bottom: 14px;
+    }
+
+    .heading { margin-bottom: 32px; }
+    .heading h1 { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .heading p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+    /* Flash messages */
+    .flash-msg {
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .flash-msg svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; flex-shrink:0; }
+    .flash-msg.danger, .flash-msg.error { background: rgba(226,75,74,0.1); border: 0.5px solid rgba(226,75,74,0.3); color: #F09595; }
+    .flash-msg.success { background: var(--gold-bg); border: 0.5px solid var(--gold-border); color: var(--gold-light); }
+    .flash-msg.warning { background: var(--gold-bg); border: 0.5px solid var(--gold-border); color: var(--gold-light); }
+    .flash-msg.info    { background: var(--gold-bg); border: 0.5px solid rgba(201,168,76,0.2); color: var(--gold-light); }
+
+    /* Field */
+    .field { margin-bottom: 20px; }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(201,168,76,0.6);
+      margin-bottom: 8px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .input-wrap { position: relative; display: flex; align-items: center; }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      width: 15px;
+      height: 15px;
+      stroke: rgba(201,168,76,0.35);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+
+    .inp {
+      width: 100%;
+      height: 46px;
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(201,168,76,0.18);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      padding: 0 14px 0 42px;
+      outline: none;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+    }
+
+    .inp::placeholder { color: rgba(255,255,255,0.18); }
+
+    .inp:focus {
+      background: rgba(201,168,76,0.06);
+      border-color: rgba(201,168,76,0.5);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
+    }
+
+    /* Helper text */
+    .helper {
+      margin-top: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .helper svg {
+      width: 12px;
+      height: 12px;
+      stroke: rgba(201,168,76,0.4);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Submit button */
+    .btn-submit {
+      width: 100%;
+      height: 46px;
+      border: none;
+      border-radius: 8px;
+      background: var(--gold);
+      color: #0f0e0a;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+      transition: background .2s, transform .1s;
+      letter-spacing: 0.02em;
+    }
+
+    .btn-submit:hover { background: var(--gold-light); }
+    .btn-submit:active { transform: scale(0.99); }
+
+    .btn-submit svg {
+      width: 15px;
+      height: 15px;
+      stroke: #0f0e0a;
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* Footer link */
+    .footer-link {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .footer-link a {
+      color: var(--gold);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color .2s;
+    }
+
+    .footer-link a:hover { color: var(--gold-light); }
+
+    @media (max-width: 480px) {
+      .card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+
+    <a href="{{ url_for('login') }}" class="back-link">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Retour à la connexion
+    </a>
+
+    <div class="icon-wrap">
+      <svg viewBox="0 0 24 24">
+        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+      </svg>
+    </div>
+
+    <div class="heading">
+      <div class="accent-line"></div>
+      <h1>Mot de passe oublié ?</h1>
+      <p>Saisissez votre adresse e-mail et nous vous enverrons un code de réinitialisation.</p>
+    </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          <div class="flash-msg {{ category }}">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
           </div>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
-    <form method="post">
-      <div class="mb-3">
-        <label for="email" class="form-label">Adresse e-mail</label>
-        <div class="input-group">
-          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-          <input type="email" class="form-control" name="email" id="email" placeholder="ex : vous@email.com" required>
+    <form method="POST">
+
+      <div class="field">
+        <label for="email">Adresse e-mail</label>
+        <div class="input-wrap">
+          <svg class="input-icon" viewBox="0 0 24 24">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <input
+            class="inp"
+            type="email"
+            id="email"
+            name="email"
+            placeholder="vous@email.com"
+            autocomplete="email"
+            required
+          >
+        </div>
+        <div class="helper">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Utilisez l'adresse associée à votre compte Geytoris.
         </div>
       </div>
 
-      <div class="d-grid">
-        <button type="submit" class="btn btn-primary btn-lg">Envoyer le code</button>
-      </div>
+      <button type="submit" class="btn-submit">
+        <svg viewBox="0 0 24 24">
+          <line x1="22" y1="2" x2="11" y2="13"/>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+        Envoyer le code
+      </button>
 
-      <div class="text-center mt-3">
-        <a href="{{ url_for('login') }}" class="text-link">← Retour à la connexion</a>
-      </div>
     </form>
+
+    <div class="footer-link">
+      Vous vous souvenez ? <a href="{{ url_for('login') }}">Se connecter</a>
+    </div>
+
   </div>
-</div>
-{% endblock %}
+
+</body>
+</html>

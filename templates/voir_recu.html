@@ -3,136 +3,268 @@
 {% block title %}Reçu de vente{% endblock %}
 
 {% block content %}
-<div class="container my-4" id="recu">
+{% set montant_produits = (recu.montant_total or 0) - (recu.prix_livraison or 0) %}
+{% set prix_livraison = recu.prix_livraison or 0 %}
+{% set montant_total = montant_produits + prix_livraison %}
 
-  <!-- Informations de la boutique -->
-  <div class="text-center mb-4">
-    {% if current_user.logo %}
-      <img src="{{ url_for('static', filename=current_user.logo.split('static/')[-1]) }}" alt="Logo" width="120" class="mb-2">
-    {% endif %}
-    <h4 class="mb-1">{{ current_user.nom_boutique or "Nom de la boutique" }}</h4>
-    <p class="mb-0">{{ current_user.adresse_boutique or "Adresse de la boutique" }}</p>
-    <p class="mb-2">{{ current_user.telephone_boutique or "Téléphone de la boutique" }}</p>
+<div class="container-fluid px-0" id="recu">
 
-    {% if not current_user.nom_boutique or not current_user.adresse_boutique or not current_user.telephone_boutique or not current_user.logo %}
-      <div class="alert alert-warning mt-3">
-        ⚠️ Informations de la boutique incomplètes. 
-        <a href="{{ url_for('modifier_infos_boutique') }}" class="btn btn-sm btn-outline-dark mt-2">Compléter maintenant</a>
-      </div>
-    {% endif %}
-  </div>
+  <!-- HEADER BOUTIQUE -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body text-center p-4">
 
-  <!-- Actions -->
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>🧾 Reçu de vente</h2>
-    <div>
-      <a href="{{ url_for('telecharger_recu_pdf', recu_id=recu.id) }}" 
-   class="btn btn-outline-secondary">
-    📄 Télécharger PDF
-</a>
-<a href="{{ url_for('telecharger_recu_pdf', recu_id=recu.id) }}"
+      {% if current_user.logo %}
+        <img src="{{ url_for('static', filename=current_user.logo.split('static/')[-1]) }}"
+             alt="Logo" width="90" class="mb-3">
+      {% endif %}
 
+      <h4 class="fw-bold mb-1">{{ current_user.nom_boutique or "Nom de la boutique" }}</h4>
+      <p class="text-muted mb-0">{{ current_user.adresse_boutique or "Adresse de la boutique" }}</p>
+      <p class="text-muted mb-0">{{ current_user.telephone_boutique or "Téléphone de la boutique" }}</p>
 
-   class="btn btn-outline-dark">
-    🧾 Ticket Thermique
-</a>
+      
 
-      <button onclick="window.print()" class="btn btn-outline-primary">🖨️ Imprimer</button>
     </div>
   </div>
 
-  <!-- Détails du reçu -->
-  <div class="card p-4 text-center mb-3">
-    <p><strong>Référence :</strong> {{ recu.reference }}</p>
-    <p><strong>Date :</strong> {{ recu.date_creation.strftime('%d/%m/%Y %H:%M:%S') }}</p>
-    <p><strong>Montant total :</strong> {{ "{:,.0f}".format(recu.montant_total) }} FCFA</p>
-    <p><strong>Montant payé :</strong> {{ "{:,.0f}".format(recu.montant_paye) }} FCFA</p>
+  <!-- ACTIONS -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 no-print">
+    <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <h5 class="fw-bold mb-0">🧾 Reçu de vente</h5>
 
-    {% if recu.montant_paye < recu.montant_total %}
-      <p><strong>Restant (dette) :</strong> {{ "{:,.0f}".format(recu.montant_total - recu.montant_paye) }} FCFA</p>
-    {% else %}
-      <p><strong>Monnaie rendue :</strong> {{ "{:,.0f}".format(recu.monnaie_rendue) }} FCFA</p>
-    {% endif %}
+      <div class="d-flex flex-wrap gap-2">
+  <a href="{{ url_for('telecharger_recu_pdf', recu_id=recu.id) }}" class="btn btn-outline-secondary rounded-pill">
+    📄 PDF
+  </a>
 
-    {% if recu.nom_client %}
-      <p><strong>Client :</strong> {{ recu.nom_client }}</p>
-    {% endif %}
-    {% if recu.telephone_client %}
-      <p><strong>Téléphone :</strong> {{ recu.telephone_client }}</p>
-    {% endif %}
+  <a href="{{ url_for('recu_ticket', recu_id=recu.id) }}" class="btn btn-outline-dark rounded-pill">
+    🧾 Ticket
+  </a>
 
-    {% if recu.dette %}
-      <a href="{{ url_for('rembourser_dette', dette_id=recu.dette.id) }}" class="btn btn-outline-warning btn-sm mt-2 no-print">
-        📌 Dette liée
-      </a>
-      <p><strong>Montant de la dette :</strong> {{ "{:,.0f}".format(recu.dette.montant_total - recu.dette.montant_rembourse) }} FCFA</p>
-    {% endif %}
+  <a href="{{ url_for('effectuer_retour', recu_id=recu.id) }}" class="btn btn-outline-warning rounded-pill">
+    ↩️ Retour produit
+  </a>
+
+  <button onclick="window.print()" class="btn btn-outline-primary rounded-pill">
+    🖨️ Imprimer
+  </button>
+</div>
+    </div>
   </div>
 
-  <!-- Produits -->
-  <h5 class="text-center mt-4 mb-3">Produits vendus</h5>
-  <table class="table table-bordered text-center">
-    <thead>
-      <tr>
-        <th>Nom</th>
-        <th>Quantité</th>
-        <th>Prix unitaire</th>
-        <th>Sous-total</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for ligne in lignes %}
-      <tr>
-        <td>{{ ligne.produit.nom }}</td>
-        <td>{{ ligne.quantite }}</td>
-        <td>{{ "{:,.0f}".format(ligne.prix_unitaire) }} FCFA</td>
-        <td>{{ "{:,.0f}".format(ligne.quantite * ligne.prix_unitaire) }} FCFA</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <!-- INFOS RECU -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4">
 
-  <div class="text-end mt-4">
-    <p><strong>Total : {{ "{:,.0f}".format(recu.montant_total) }} FCFA</strong></p>
+      <div class="row text-center g-3">
+
+        <div class="col-md-4">
+          <div class="bg-light rounded-3 p-3">
+            <small class="text-muted">Référence</small>
+            <div class="fw-bold">{{ recu.reference }}</div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="bg-light rounded-3 p-3">
+            <small class="text-muted">Date</small>
+            <div class="fw-semibold">{{ recu.date_creation.strftime('%d/%m/%Y %H:%M:%S') }}</div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="bg-light rounded-3 p-3">
+            <small class="text-muted">Client</small>
+            <div class="fw-semibold">{{ recu.nom_client or "Client" }}</div>
+          </div>
+        </div>
+
+      </div>
+
+      <hr class="my-4">
+
+      <div class="row g-3 text-center">
+
+        <div class="col-md-4">
+          <div class="p-3 border rounded-3">
+            <small class="text-muted">Montant produits</small>
+            <div class="fw-bold text-primary">
+              {{ "{:,.0f}".format(montant_produits) }} FCFA
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="p-3 border rounded-3">
+            <small class="text-muted">Prix de livraison</small>
+            <div class="fw-bold text-dark">
+              {{ "{:,.0f}".format(prix_livraison) }} FCFA
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="p-3 border rounded-3 bg-light">
+            <small class="text-muted">Montant total</small>
+            <div class="fw-bold text-success">
+              {{ "{:,.0f}".format(montant_total) }} FCFA
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="row g-3 text-center mt-1">
+
+        <div class="col-md-4">
+          <div class="p-3 border rounded-3">
+            <small class="text-muted">Montant payé</small>
+            <div class="fw-bold">
+              {{ "{:,.0f}".format(recu.montant_paye or 0) }} FCFA
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          {% if (recu.montant_paye or 0) < montant_total %}
+            <div class="p-3 border rounded-3 bg-warning-subtle">
+              <small class="text-muted">Restant (dette)</small>
+              <div class="fw-bold text-warning">
+                {{ "{:,.0f}".format(montant_total - (recu.montant_paye or 0)) }} FCFA
+              </div>
+            </div>
+          {% else %}
+            <div class="p-3 border rounded-3 bg-success-subtle">
+              <small class="text-muted">Monnaie rendue</small>
+              <div class="fw-bold text-success">
+                {{ "{:,.0f}".format(recu.monnaie_rendue or 0) }} FCFA
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="col-md-4">
+          <div class="p-3 border rounded-3">
+            <small class="text-muted">Téléphone client</small>
+            <div class="fw-semibold">{{ recu.telephone_client or "Non renseigné" }}</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="p-3 border rounded-3">
+            <small class="text-muted d-block mb-1">Adresse de livraison</small>
+            <div class="fw-semibold">{{ recu.adresse_livraison or 'Non renseignée' }}</div>
+          </div>
+        </div>
+      </div>
+
+      {% if recu.dette %}
+      <div class="text-center mt-4">
+        <a href="{{ url_for('rembourser_dette', dette_id=recu.dette.id) }}" class="btn btn-outline-warning btn-sm mt-2 no-print rounded-pill px-3">
+          📌 Dette liée
+        </a>
+        <p class="mt-3 mb-0">
+          <strong>Montant de la dette :</strong>
+          {{ "{:,.0f}".format((recu.dette.montant_total or 0) - (recu.dette.montant_rembourse or 0)) }} FCFA
+        </p>
+      </div>
+      {% endif %}
+
+    </div>
   </div>
 
+  <!-- TABLE PRODUITS -->
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+
+      <h5 class="fw-bold mb-3 text-center">Produits vendus</h5>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle text-center mb-0">
+          <thead style="background:#f8f9fa;">
+            <tr>
+              <th>Produit</th>
+              <th>Qté</th>
+              <th>Prix unitaire</th>
+              <th>Sous-total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ligne in lignes %}
+            <tr>
+              <td class="fw-semibold">{{ ligne.produit.nom }}</td>
+              <td>{{ ligne.quantite }}</td>
+              <td>{{ "{:,.0f}".format(ligne.prix_unitaire or 0) }} FCFA</td>
+              <td class="fw-bold text-primary">
+                {{ "{:,.0f}".format((ligne.quantite or 0) * (ligne.prix_unitaire or 0)) }} FCFA
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TOTAL FINAL -->
+      <div class="mt-4 text-end">
+        <p class="mb-1">
+          <strong>Total produits :</strong>
+          <span>{{ "{:,.0f}".format(montant_produits) }} FCFA</span>
+        </p>
+        <p class="mb-1">
+          <strong>Livraison :</strong>
+          <span>{{ "{:,.0f}".format(prix_livraison) }} FCFA</span>
+        </p>
+        <h5 class="fw-bold">
+          Total général :
+          <span class="text-success">
+            {{ "{:,.0f}".format(montant_total) }} FCFA
+          </span>
+        </h5>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SIGNATURE -->
   <div class="text-center mt-5">
-    <p><strong>Signature du vendeur</strong></p>
+    <p class="fw-semibold">Signature du vendeur</p>
     <p>_____________________________</p>
   </div>
 
-<div class="text-center mt-4 no-print d-flex justify-content-center gap-3">
+  <!-- ACTIONS BAS -->
+  <div class="text-center mt-4 no-print d-flex justify-content-center gap-3 flex-wrap">
+    <a href="{{ url_for('recus') }}" class="btn btn-outline-secondary rounded-pill px-4">
+      ⬅️ Historique
+    </a>
 
-  <a href="{{ url_for('recus') }}" class="btn btn-secondary">
-    ⬅️ Retour à l'historique
-  </a>
-
-  <!-- ✅ NOUVEAU bouton -->
-  <a href="{{ url_for('effectuer_vente') }}" class="btn btn-success">
-    ➕ Effectuer une autre vente
-  </a>
+    <a href="{{ url_for('effectuer_vente') }}" class="btn btn-success rounded-pill px-4">
+      ➕ Nouvelle vente
+    </a>
+  </div>
 
 </div>
 
-
-<!-- Impression -->
 <style>
-  @media print {
-    body * {
-      visibility: hidden;
-    }
-    #recu, #recu * {
-      visibility: visible;
-    }
-    #recu {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-    }
-    .no-print {
-      display: none !important;
-    }
+@media print {
+  body * {
+    visibility: hidden;
   }
+  #recu, #recu * {
+    visibility: visible;
+  }
+  #recu {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
 </style>
+
 {% endblock %}

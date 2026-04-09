@@ -1,33 +1,394 @@
 {% extends "base.html" %}
 {% block title %}Historique des statistiques{% endblock %}
 
+{% block head %}
+<style>
+  .history-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0.8rem 0 0.5rem;
+  }
+
+  .history-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.6rem;
+  }
+
+  .history-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+
+  .history-logo-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 0.45rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .history-logo-box img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+
+  .history-title-block p {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 4px;
+  }
+
+  .history-title-block h1 {
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.2rem;
+  }
+
+  .history-title-block .subtitle {
+    color: #6b7280;
+    font-size: 0.94rem;
+    margin: 0;
+  }
+
+  .history-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-history {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 15px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.18s ease;
+  }
+
+  .btn-history:hover {
+    background: #f9fafb;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    color: #111827;
+  }
+
+  .history-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  .summary-card {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 1.25rem 1.35rem;
+  }
+
+  .summary-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 8px;
+  }
+
+  .summary-value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .summary-sub {
+    color: #6b7280;
+    font-size: 0.88rem;
+    margin-top: 6px;
+  }
+
+  .history-table-card {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+
+  .history-table-header {
+    padding: 1.35rem 1.4rem 0.8rem;
+  }
+
+  .history-table-header h5 {
+    margin: 0 0 4px;
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .history-table-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.92rem;
+  }
+
+  .history-table-wrap {
+    padding: 0 1rem 1rem;
+  }
+
+  .history-table {
+    margin-bottom: 0;
+  }
+
+  .history-table thead th {
+    white-space: nowrap;
+  }
+
+  .month-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(31, 111, 235, 0.08);
+    color: #1d4ed8;
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  .money-cell {
+    font-weight: 700;
+    color: #059669;
+  }
+
+  .sales-cell {
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .date-cell {
+    color: #6b7280;
+    font-size: 0.92rem;
+  }
+
+  .empty-state {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 22px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    text-align: center;
+    padding: 3rem 1.5rem;
+  }
+
+  .empty-icon {
+    font-size: 3rem;
+    color: #9ca3af;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-title {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.35rem;
+  }
+
+  .empty-text {
+    color: #6b7280;
+    margin-bottom: 0;
+  }
+
+  /* Dark mode */
+  html.dark-mode .history-logo-box,
+  html.dark-mode .summary-card,
+  html.dark-mode .history-table-card,
+  html.dark-mode .empty-state {
+    background: #111827 !important;
+    border-color: #334155 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.22) !important;
+  }
+
+  html.dark-mode .history-title-block p,
+  html.dark-mode .summary-label,
+  html.dark-mode .date-cell,
+  html.dark-mode .empty-icon {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .history-title-block h1,
+  html.dark-mode .summary-value,
+  html.dark-mode .history-table-header h5,
+  html.dark-mode .empty-title,
+  html.dark-mode .sales-cell {
+    color: #f8fafc !important;
+  }
+
+  html.dark-mode .history-title-block .subtitle,
+  html.dark-mode .history-table-header p,
+  html.dark-mode .summary-sub,
+  html.dark-mode .empty-text {
+    color: #94a3b8 !important;
+  }
+
+  html.dark-mode .btn-history {
+    background: #111827 !important;
+    color: #e5e7eb !important;
+    border-color: #334155 !important;
+    box-shadow: none !important;
+  }
+
+  html.dark-mode .btn-history:hover {
+    background: #1f2937 !important;
+    color: #ffffff !important;
+  }
+
+  html.dark-mode .month-badge {
+    background: rgba(96, 165, 250, 0.12) !important;
+    color: #93c5fd !important;
+  }
+
+  html.dark-mode .money-cell {
+    color: #34d399 !important;
+  }
+
+  @media (max-width: 768px) {
+    .history-topbar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .history-actions {
+      width: 100%;
+    }
+
+    .btn-history {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+
+    .history-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-  <h2 class="text-center text-primary fw-bold mb-4">📈 Historique des statistiques mensuelles</h2>
+<div class="history-wrapper">
+
+  <div class="history-topbar">
+    <div class="history-brand">
+      <div class="history-logo-box">
+        <img src="{{ url_for('static', filename='logo_geytoris.png') }}" alt="Logo Geytoris">
+      </div>
+
+      <div class="history-title-block">
+        <p>Archives</p>
+        <h1>Historique des statistiques</h1>
+        <p class="subtitle">Consultez les statistiques mensuelles archivées de votre activité.</p>
+      </div>
+    </div>
+
+    <div class="history-actions">
+      <a href="{{ url_for('stats') }}" class="btn-history">
+        <span>📊</span> Statistiques du mois
+      </a>
+    </div>
+  </div>
 
   {% if stats %}
-    <table class="table table-bordered table-hover shadow-sm text-center">
-      <thead class="table-light">
-        <tr>
-          <th>Mois</th>
-          <th>Chiffre d'affaires</th>
-          <th>Nombre de ventes</th>
-          <th>Enregistré le</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for stat in stats %}
-        <tr>
-          <td>{{ stat.mois }}/{{ stat.annee }}</td>
-          <td>{{ stat.chiffre_affaires | round(0) }} F CFA</td>
-          <td>{{ stat.nombre_ventes }}</td>
-          <td>{{ stat.date_enregistrement.strftime('%d/%m/%Y %H:%M') }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="history-summary">
+      <div class="summary-card">
+        <div class="summary-label">Archives enregistrées</div>
+        <div class="summary-value">{{ stats|length }}</div>
+        <div class="summary-sub">mois sauvegardés</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Dernière archive</div>
+        <div class="summary-value">
+          {{ stats[0].mois }}/{{ stats[0].annee }}
+        </div>
+        <div class="summary-sub">archive la plus récente</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-label">Ventes cumulées</div>
+        <div class="summary-value">
+          {{ stats | sum(attribute='nombre_ventes') }}
+        </div>
+        <div class="summary-sub">sur toutes les archives</div>
+      </div>
+    </div>
+
+    <div class="history-table-card">
+      <div class="history-table-header">
+        <h5>Historique mensuel</h5>
+        <p>Retrouvez les chiffres enregistrés pour chaque période archivée.</p>
+      </div>
+
+      <div class="history-table-wrap">
+        <div class="table-responsive">
+          <table class="table history-table align-middle text-center">
+            <thead>
+              <tr>
+                <th>Mois</th>
+                <th>Chiffre d'affaires</th>
+                <th>Nombre de ventes</th>
+                <th>Enregistré le</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for stat in stats %}
+              <tr>
+                <td>
+                  <span class="month-badge">{{ stat.mois }}/{{ stat.annee }}</span>
+                </td>
+                <td class="money-cell">
+                  {{ stat.chiffre_affaires | round(0) }} F CFA
+                </td>
+                <td class="sales-cell">
+                  {{ stat.nombre_ventes }}
+                </td>
+                <td class="date-cell">
+                  {{ stat.date_enregistrement.strftime('%d/%m/%Y %H:%M') }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   {% else %}
-    <div class="alert alert-info text-center">Aucune statistique archivée pour le moment.</div>
+    <div class="empty-state">
+      <div class="empty-icon">📈</div>
+      <div class="empty-title">Aucune statistique archivée</div>
+      <p class="empty-text">Les statistiques mensuelles enregistrées apparaîtront ici.</p>
+    </div>
   {% endif %}
 </div>
 {% endblock %}

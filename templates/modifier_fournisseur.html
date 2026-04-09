@@ -1,30 +1,147 @@
 {% extends 'base.html' %}
-{% block title %}Modifier Fournisseur{% endblock %}
+{% block title %}Modifier Fournisseur - Geytoris{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h3 class="text-center mb-4">✏️ Modifier le fournisseur</h3>
-  <form method="POST" class="row g-3">
-    <div class="col-md-6">
-      <label for="nom" class="form-label">Nom</label>
-      <input type="text" class="form-control" name="nom" value="{{ fournisseur.nom }}" required>
+<div class="container-fluid px-0">
+
+    <!-- En-tête -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+        <div class="card-body p-4 p-lg-5">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="rounded-4 d-flex align-items-center justify-content-center flex-shrink-0"
+                         style="width: 62px; height: 62px; background: linear-gradient(135deg, rgba(255,193,7,0.18), rgba(13,110,253,0.12));">
+                        <i class="bi bi-pencil-square fs-3 text-warning"></i>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-1">Modifier le fournisseur</h2>
+                        <p class="text-muted mb-0">
+                            Mettez à jour les informations de ce fournisseur dans Geytoris.
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <a href="{{ url_for('fournisseurs') }}" class="btn btn-light border rounded-pill px-4">
+                        <i class="bi bi-arrow-left me-2"></i>Retour à la liste
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-6">
-      <label for="telephone" class="form-label">Téléphone</label>
-      <input type="text" class="form-control" name="telephone" value="{{ fournisseur.telephone }}">
-    </div>
-    <div class="col-md-6">
-      <label for="email" class="form-label">Email</label>
-      <input type="email" class="form-control" name="email" value="{{ fournisseur.email }}">
-    </div>
-    <div class="col-12">
-      <label for="adresse" class="form-label">Adresse</label>
-      <textarea class="form-control" name="adresse">{{ fournisseur.adresse }}</textarea>
-    </div>
-    <div class="col-12 text-end">
-      <button type="submit" class="btn btn-success">Enregistrer</button>
-      <a href="{{ url_for('fournisseurs') }}" class="btn btn-secondary">Annuler</a>
-    </div>
-  </form>
+
+    <form method="POST">
+        <!-- Bloc principal -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-0 px-4 pt-4 pb-0">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 p-2" style="background-color: rgba(255,193,7,0.12);">
+                        <i class="bi bi-building-gear fs-5 text-warning"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Informations du fournisseur</h5>
+                        <p class="text-muted small mb-0">
+                            Modifiez les champs nécessaires puis enregistrez les changements.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+                        <label for="nom" class="form-label fw-semibold">Nom du fournisseur</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-person-badge text-primary"></i>
+                            </span>
+                            <input
+                                type="text"
+                                id="nom"
+                                name="nom"
+                                class="form-control border-start-0"
+                                value="{{ fournisseur.nom }}"
+                                placeholder="Nom du fournisseur"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="telephone" class="form-label fw-semibold">Téléphone</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-telephone-fill text-success"></i>
+                            </span>
+                            <input
+                                type="text"
+                                id="telephone"
+                                name="telephone"
+                                class="form-control border-start-0"
+                                value="{{ fournisseur.telephone }}"
+                                placeholder="Ex. 77 123 45 67"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="email" class="form-label fw-semibold">Adresse email</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-envelope-fill text-warning"></i>
+                            </span>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                class="form-control border-start-0"
+                                value="{{ fournisseur.email }}"
+                                placeholder="exemple@email.com"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="adresse" class="form-label fw-semibold">Adresse</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light align-items-start pt-3">
+                                <i class="bi bi-geo-alt-fill text-danger"></i>
+                            </span>
+                            <textarea
+                                id="adresse"
+                                name="adresse"
+                                class="form-control"
+                                rows="3"
+                                placeholder="Adresse complète du fournisseur"
+                            >{{ fournisseur.adresse }}</textarea>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Zone actions -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h6 class="fw-bold mb-1">Enregistrement des modifications</h6>
+                    <p class="text-muted small mb-0">
+                        Vérifiez les informations mises à jour avant de valider.
+                    </p>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('fournisseurs') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                        Annuler
+                    </a>
+                    <button type="submit" class="btn btn-warning text-dark rounded-pill px-4 fw-semibold">
+                        <i class="bi bi-save2-fill me-2"></i>Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 {% endblock %}

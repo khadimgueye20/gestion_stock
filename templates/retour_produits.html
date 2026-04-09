@@ -3,44 +3,292 @@
 {% block title %}Retour de produits – {{ app_name }}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <h2 class="mb-4 text-white text-center">↩️ Retourner des produits du reçu n°{{ recu.id }}</h2>
+<div class="container-fluid px-0">
 
-  <form method="POST" class="p-4 rounded shadow bg-light text-dark">
-    {% for ligne in lignes %}
-      <div class="mb-4">
-        <label class="form-label fw-semibold">{{ ligne.produit.nom }}</label>
-        <div class="row g-2">
-          <div class="col-md-4">
-            <input
-              type="number"
-              class="form-control"
-              name="qte_{{ ligne.produit.id }}"
-              placeholder="Quantité (max {{ ligne.quantite }})"
-              min="0"
-              max="{{ ligne.quantite }}"
-            >
-          </div>
-          <div class="col-md-8">
-            <input
-              type="text"
-              class="form-control"
-              name="motif_{{ ligne.produit.id }}"
-              placeholder="Motif du retour (facultatif)"
-            >
-          </div>
+  <!-- EN-TÊTE -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4 p-lg-5 d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+      
+      <div class="d-flex align-items-start gap-3">
+        <div class="rounded-4 d-flex align-items-center justify-content-center"
+             style="width:60px;height:60px;background:rgba(220,53,69,0.15)">
+          <i class="bi bi-arrow-counterclockwise fs-3 text-danger"></i>
+        </div>
+
+        <div>
+          <h2 class="fw-bold mb-1">Retour de produits</h2>
+          <p class="text-muted mb-0">
+            Reçu n°{{ recu.id }} — Sélectionnez les produits à retourner
+          </p>
         </div>
       </div>
-    {% endfor %}
 
-    <div class="d-flex justify-content-between mt-4">
-      <a href="{{ url_for('recus') }}" class="btn btn-secondary">Annuler</a>
-        ← Annuler
+      <a href="{{ url_for('recus') }}" class="btn btn-light border rounded-pill px-4">
+        <i class="bi bi-arrow-left me-2"></i>Retour
       </a>
-      <button type="submit" class="btn btn-danger fw-bold">
-        ✅ Enregistrer les retours
-      </button>
+
     </div>
+  </div>
+
+  <form method="POST" id="form-retour">
+
+    <!-- LISTE DES PRODUITS -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-header bg-white border-0 px-4 pt-4 pb-0">
+        <h5 class="fw-bold">Produits du reçu</h5>
+        <p class="text-muted small mb-0">
+          Indiquez les quantités à retourner. Le montant remboursé sera calculé automatiquement.
+        </p>
+      </div>
+
+      <div class="card-body p-4">
+        <div class="row g-4">
+
+          {% for ligne in lignes %}
+          <div class="col-12">
+            <div class="border rounded-4 p-3 produit-retour"
+                 data-prix="{{ ligne.prix_unitaire or 0 }}"
+                 data-max="{{ ligne.quantite }}">
+
+              <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+                <div>
+                  <div class="fw-semibold fs-6">{{ ligne.produit.nom }}</div>
+                  <small class="text-muted">
+                    Prix unitaire : {{ "{:,.0f}".format(ligne.prix_unitaire or 0) }} FCFA
+                  </small>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                  <span class="badge bg-light text-dark border px-3 py-2">
+                    Quantité vendue : {{ ligne.quantite }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="row g-3 align-items-end">
+
+                <div class="col-md-3">
+                  <label class="form-label small text-muted">Quantité à retourner</label>
+                  <input
+                    type="number"
+                    class="form-control qte-retour"
+                    name="qte_{{ ligne.produit.id }}"
+                    placeholder="0"
+                    min="0"
+                    max="{{ ligne.quantite }}"
+                    value="0"
+                  >
+                  <div class="invalid-feedback erreur-qte">
+                    La quantité ne peut pas dépasser {{ ligne.quantite }}.
+                  </div>
+                </div>
+
+                <div class="col-md-5">
+                  <label class="form-label small text-muted">Motif (optionnel)</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    name="motif_{{ ligne.produit.id }}"
+                    placeholder="Ex : Produit défectueux, erreur client..."
+                  >
+                </div>
+
+                <div class="col-md-2">
+                  <label class="form-label small text-muted">Prix unitaire</label>
+                  <div class="form-control bg-light">
+                    {{ "{:,.0f}".format(ligne.prix_unitaire or 0) }} FCFA
+                  </div>
+                </div>
+
+                <div class="col-md-2">
+                  <label class="form-label small text-muted">Sous-total retour</label>
+                  <div class="form-control bg-light fw-bold text-danger sous-total-retour">
+                    0 FCFA
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+
+        </div>
+      </div>
+    </div>
+
+    <!-- RÉSUMÉ -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-body p-4">
+        <div class="row g-3 text-center">
+
+          <div class="col-md-4">
+            <div class="border rounded-4 p-3">
+              <small class="text-muted d-block">Nombre total d’articles retournés</small>
+              <div class="fw-bold fs-4" id="total_articles_retournes">0</div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="border rounded-4 p-3">
+              <small class="text-muted d-block">Nombre de produits concernés</small>
+              <div class="fw-bold fs-4" id="total_produits_concernes">0</div>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="border rounded-4 p-3 bg-light">
+              <small class="text-muted d-block">Montant remboursé</small>
+              <div class="fw-bold fs-3 text-danger" id="montant_rembourse">0 FCFA</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+
+        <div>
+          <h6 class="fw-bold mb-1">Validation</h6>
+          <p class="text-muted small mb-0">
+            Vérifiez les quantités avant d’enregistrer les retours.
+          </p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('recus') }}" class="btn btn-outline-secondary rounded-pill px-4">
+            Annuler
+          </a>
+
+          <button type="submit" class="btn btn-danger rounded-pill px-4 fw-semibold">
+            <i class="bi bi-check-circle-fill me-2"></i>Enregistrer les retours
+          </button>
+        </div>
+
+      </div>
+    </div>
+
   </form>
 </div>
+
+<style>
+.produit-retour {
+  transition: 0.2s ease-in-out;
+}
+
+.produit-retour:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.dark-mode .produit-retour:hover {
+  background-color: #1e293b;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("form-retour");
+  const blocs = document.querySelectorAll(".produit-retour");
+  const montantRembourseElt = document.getElementById("montant_rembourse");
+  const totalArticlesElt = document.getElementById("total_articles_retournes");
+  const totalProduitsElt = document.getElementById("total_produits_concernes");
+
+  function formatFCFA(valeur) {
+    return Number(valeur || 0).toLocaleString('fr-FR') + " FCFA";
+  }
+
+  function recalculerTout() {
+    let totalRembourse = 0;
+    let totalArticles = 0;
+    let totalProduits = 0;
+
+    blocs.forEach(bloc => {
+      const prix = parseFloat(bloc.dataset.prix) || 0;
+      const max = parseInt(bloc.dataset.max) || 0;
+      const inputQte = bloc.querySelector(".qte-retour");
+      const sousTotalElt = bloc.querySelector(".sous-total-retour");
+
+      let qte = parseInt(inputQte.value) || 0;
+
+      // Sécurité JS : empêcher quantité > max
+      if (qte > max) {
+        qte = max;
+        inputQte.value = max;
+      }
+
+      // Sécurité JS : empêcher quantité négative
+      if (qte < 0) {
+        qte = 0;
+        inputQte.value = 0;
+      }
+
+      // Affichage erreur Bootstrap
+      if (parseInt(inputQte.value) > max) {
+        inputQte.classList.add("is-invalid");
+      } else {
+        inputQte.classList.remove("is-invalid");
+      }
+
+      const sousTotal = qte * prix;
+      sousTotalElt.textContent = formatFCFA(sousTotal);
+
+      totalRembourse += sousTotal;
+      totalArticles += qte;
+
+      if (qte > 0) {
+        totalProduits += 1;
+      }
+    });
+
+    montantRembourseElt.textContent = formatFCFA(totalRembourse);
+    totalArticlesElt.textContent = totalArticles;
+    totalProduitsElt.textContent = totalProduits;
+  }
+
+  blocs.forEach(bloc => {
+    const inputQte = bloc.querySelector(".qte-retour");
+
+    inputQte.addEventListener("input", function () {
+      const max = parseInt(this.getAttribute("max")) || 0;
+      let valeur = parseInt(this.value) || 0;
+
+      if (valeur > max) {
+        this.value = max;
+        this.classList.add("is-invalid");
+      } else if (valeur < 0) {
+        this.value = 0;
+        this.classList.remove("is-invalid");
+      } else {
+        this.classList.remove("is-invalid");
+      }
+
+      recalculerTout();
+    });
+  });
+
+  form.addEventListener("submit", function (e) {
+    let formValide = true;
+
+    blocs.forEach(bloc => {
+      const inputQte = bloc.querySelector(".qte-retour");
+      const max = parseInt(inputQte.getAttribute("max")) || 0;
+      const qte = parseInt(inputQte.value) || 0;
+
+      if (qte > max || qte < 0) {
+        formValide = false;
+        inputQte.classList.add("is-invalid");
+      }
+    });
+
+    if (!formValide) {
+      e.preventDefault();
+      alert("Certaines quantités de retour sont invalides. Veuillez corriger avant d’enregistrer.");
+    }
+  });
+
+  recalculerTout();
+});
+</script>
 {% endblock %}
